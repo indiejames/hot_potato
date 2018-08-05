@@ -23,10 +23,12 @@ defmodule HotPotato.GameState do
   end
 
   defstate waiting_for_joiners do
-    defevent join(player_id), data: state do
+    defevent join(slack, channel, player_id), data: state do
+      Message.send_join_notice(slack, channel, player_id)
       new_state = state
         |> update_in([:players], &([player_id | &1]))
         |> update_in([:live_players], &([player_id | &1]))
+      IO.inspect(Map.get(new_state, :players))
       next_state(:waiting_for_joiners, new_state)
     end
 
@@ -47,6 +49,10 @@ defmodule HotPotato.GameState do
     defevent stop do
       next_state(:stopped, 0)
     end
+  end
+
+  # prevent exceptions for unknown or improper events
+  defevent _ do
   end
 
 end

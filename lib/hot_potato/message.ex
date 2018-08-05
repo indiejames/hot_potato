@@ -9,4 +9,8 @@ defmodule HotPotato.Message do
     IO.inspect(channel)
     send_message("Hot Potato starting in 30 seconds - message 'join' to play", channel, slack)
   end
+
+  def send_join_notice(slack, channel, player_id) do
+    send_message("<@#{player_id}> has joined the game!", channel, slack)
+  end
 end

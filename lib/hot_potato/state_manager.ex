@@ -1,4 +1,4 @@
-defmodule HotPotato.Agent do
+defmodule HotPotato.StateManager do
   use Agent
   alias HotPotato.GameState
 
@@ -8,8 +8,15 @@ defmodule HotPotato.Agent do
   end
 
   def start_game(slack, channel) do
-    Agent.get(__MODULE__, fn state ->
+    Agent.update(__MODULE__, fn state ->
       GameState.startGame(state, slack, channel)
+    end)
+  end
+
+  def add_player(slack, channel, player_id) do
+    Agent.update(__MODULE__, fn state ->
+      IO.inspect(state)
+      GameState.join(state, slack, channel, player_id)
     end)
   end
 

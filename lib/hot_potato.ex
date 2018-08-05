@@ -9,7 +9,7 @@ defmodule HotPotato do
   def connect() do
     token = System.get_env("TOKEN")
     IO.puts("TOKEN: #{token}")
-    {:ok, agent} = HotPotato.Agent.start_link([])
+    {:ok, agent} = HotPotato.StateManager.start_link([])
     Slack.Bot.start_link(__MODULE__, agent, token)
   end
 
@@ -19,18 +19,24 @@ defmodule HotPotato do
 
   match ~r/Go potato!/, :start_game
 
+  match ~r/join/, :join
+
   def hellos(slack, channel, from_user, to_user1, to_user2) do
     send_message("Hello from <@#{from_user}> to <@#{to_user1}> and <@#{to_user2}>", channel, slack)
   end
 
   def hello(slack, channel, from_user, to_user) do
-    IO.inspect(slack)
     send_message("Hello from <@#{from_user}> to <@#{to_user}>", channel, slack)
   end
 
   def start_game(slack, channel, from_user) do
     IO.puts("User #{from_user} has requested a game")
-    HotPotato.Agent.start_game(slack, channel)
+    HotPotato.StateManager.start_game(slack, channel)
+  end
+
+  def join(slack, channel, from_user) do
+    IO.puts("User #{from_user} wants to join")
+    HotPotato.StateManager.add_player(slack, channel, from_user)
   end
 
   def handle_connect(slack, state) do

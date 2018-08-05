@@ -22,16 +22,10 @@ defmodule HotPotato.Matcher do
     quote do
       def do_match(slack, message) do
         %{channel: channel, user: user, text: text} = message
-        IO.inspect(@matchers)
-        IO.inspect(user)
-        IO.inspect(text)
         match = Enum.find(@matchers, fn [regex, _] -> Regex.match?(regex, text) end)
-        IO.puts("OK")
-        IO.inspect(match)
         if match do
           [regex, fun] = match
           [_ | args] = Regex.run(regex, text)
-          IO.inspect(args)
           Kernel.apply(__MODULE__, fun, [slack | [channel | [user | args]]])
         end
       end
