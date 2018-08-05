@@ -13,4 +13,8 @@ defmodule HotPotato.Message do
   def send_join_notice(slack, channel, player_id) do
     send_message("<@#{player_id}> has joined the game!", channel, slack)
   end
+
+  def send_warning(slack, channel, message) do
+    send_message("#{message} :warning:", channel, slack)
+  end
 end

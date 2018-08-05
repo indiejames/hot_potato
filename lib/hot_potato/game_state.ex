@@ -2,8 +2,8 @@ defmodule HotPotato.GameState do
   alias HotPotato.Message
 
   @initial_state %{
-    :players => [], # all players in the current game (alive or dead)
-    :live_players => [], # active players
+    :players => MapSet.new, # all players in the current game (alive or dead)
+    :live_players => MapSet.new, # active players
     :potato_lifespan => 0, # lifespan of potato in milliseconds
     :start_time => 0 # start time in milliseconds since epoch
   }
@@ -16,18 +16,27 @@ defmodule HotPotato.GameState do
       Message.send_start_notice(slack, channel)
       IO.puts("Message sent")
       state = @initial_state
-      |> Map.put("slack", slack)
-      |> Map.put("channel", channel)
+      |> Map.put(:slack, slack)
+      |> Map.put(:channel, channel)
       next_state(:waiting_for_joiners, state)           # changing state and data
     end
   end
 
   defstate waiting_for_joiners do
-    defevent join(slack, channel, player_id), data: state do
-      Message.send_join_notice(slack, channel, player_id)
-      new_state = state
-        |> update_in([:players], &([player_id | &1]))
-        |> update_in([:live_players], &([player_id | &1]))
+    defevent join(player_id), data: state do
+      %{:slack => slack, :channel => channel, :players => players} = state
+
+      new_state = if !MapSet.member?(players, player_id) do
+        Message.send_join_notice(slack, channel, player_id)
+
+        state
+        |> update_in([:players], &(MapSet.put(&1, player_id)))
+        |> update_in([:live_players], &(MapSet.put(&1, player_id)))
+      else
+        Message.send_warning(slack, channel, "I heard you the first time, <@#{player_id}>")
+        state
+      end
+
       IO.inspect(Map.get(new_state, :players))
       next_state(:waiting_for_joiners, new_state)
     end

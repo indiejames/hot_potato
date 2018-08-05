@@ -1,6 +1,7 @@
 defmodule HotPotato.StateManager do
   use Agent
   alias HotPotato.GameState
+  alias HotPotato.Message
 
   @doc "Starts the agaent using the module name as its name with an empty map as its state"
   def start_link(_) do
@@ -15,8 +16,13 @@ defmodule HotPotato.StateManager do
 
   def add_player(slack, channel, player_id) do
     Agent.update(__MODULE__, fn state ->
-      IO.inspect(state)
-      GameState.join(state, slack, channel, player_id)
+      IO.inspect(state.state)
+      if state.state == :waiting_for_joiners do
+        GameState.join(state, player_id)
+      else
+        Message.send_warning(slack, channel, "<@#{player_id}> you can't join right now")
+        state
+      end
     end)
   end
 
