@@ -29,6 +29,7 @@ defmodule HotPotato.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:slack, "~> 0.14.0"}]
+    [{:slack, "~> 0.14.0"},
+     {:fsm, "~> 0.3.1"}]
   end
 end
