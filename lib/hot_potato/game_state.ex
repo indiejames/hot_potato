@@ -1,6 +1,8 @@
 defmodule HotPotato.GameState do
   alias HotPotato.Message
 
+  @game_start_delay 30_000 # time players have to join a new game (msec)
+
   @initial_state %{
     :players => MapSet.new, # all players in the current game (alive or dead)
     :live_players => MapSet.new, # active players
@@ -12,13 +14,23 @@ defmodule HotPotato.GameState do
 
   defstate stopped do
     defevent startGame(slack, channel) do
-      IO.puts("About to send message")
       Message.send_start_notice(slack, channel)
-      IO.puts("Message sent")
+
+      # set a timer to begin the first round after players have joined
+      # :timer.apply_after(@game_start_delay, HotPotato.StateManager, HotPotato.StateManager.begin_round, [])
+      spawn(fn ->
+        receive do
+          {:hello, msg}  -> msg
+          after
+            30_000 -> HotPotato.StateManager.begin_round()
+          end
+      end)
+
+
       state = @initial_state
       |> Map.put(:slack, slack)
       |> Map.put(:channel, channel)
-      next_state(:waiting_for_joiners, state)           # changing state and data
+      next_state(:waiting_for_joiners, state)
     end
   end
 
@@ -41,17 +53,21 @@ defmodule HotPotato.GameState do
       next_state(:waiting_for_joiners, new_state)
     end
 
-    defevent timeout(), data: state do
-      if Enum.count(Map.get(state, :players)) > 0 do
+    defevent start_round(), data: state do
+      %{:slack => slack, :channel => channel, :players => players} = state
+      IO.puts("Starting the round")
+      if Enum.count(players) < 2 do
+        Message.send_warning(slack, channel, "Not enough players")
         next_state(:stopped, @initial_state)
       else
+        Message.send_started_notice(slack, channel)
         next_state(:playing, state)
       end
     end
   end
 
   defstate playing do
-    defevent slowdown(by), data: speed do     # you can pattern match data with dedicated option
+    defevent slowdown(by), data: speed do
       next_state(:playing, speed - by)
     end
 
@@ -61,7 +77,7 @@ defmodule HotPotato.GameState do
   end
 
   # prevent exceptions for unknown or improper events
-  defevent _ do
-  end
+  # defevent _ do
+  # end
 
 end
