@@ -21,3 +21,5 @@ erl_crash.dump
 
 # Ignore VSCode Elixir plugin data
 .elixir_ls
+
+.vscode

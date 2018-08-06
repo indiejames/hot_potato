@@ -28,9 +28,12 @@ defmodule HotPotato.StateManager do
 
   def begin_round() do
     IO.puts("Beginning round")
-    Agent.cast(__MODULE__, fn  state ->
+    Agent.update(__MODULE__, fn state ->
       GameState.start_round(state)
     end)
+    # Agent.cast(__MODULE__, fn  state ->
+    #   GameState.start_round(state)
+    # end)
   end
 
   @doc "Get the list of players in the current game"

@@ -22,7 +22,7 @@ defmodule HotPotato.GameState do
         receive do
           {:hello, msg}  -> msg
           after
-            30_000 -> HotPotato.StateManager.begin_round()
+            @game_start_delay -> HotPotato.StateManager.begin_round()
           end
       end)
 
