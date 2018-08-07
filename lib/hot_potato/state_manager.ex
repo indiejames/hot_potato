@@ -3,17 +3,27 @@ defmodule HotPotato.StateManager do
   alias HotPotato.GameState
   alias HotPotato.Message
 
+  @moduledoc """
+  Functions to update game state when Slack messages or timer events are received
+  """
+
   @doc "Starts the agaent using the module name as its name with an empty map as its state"
   def start_link(_) do
     Agent.start_link(fn -> GameState.new end, name: __MODULE__)
   end
 
+  @doc """
+  Start the game when someone requests it
+  """
   def start_game(slack, channel) do
     Agent.update(__MODULE__, fn state ->
       GameState.startGame(state, slack, channel)
     end)
   end
 
+  @doc """
+  Add a player to the game
+  """
   def add_player(slack, channel, player_id) do
     Agent.update(__MODULE__, fn state ->
       IO.inspect(state.state)
@@ -26,6 +36,9 @@ defmodule HotPotato.StateManager do
     end)
   end
 
+  @doc """
+  Begin the round
+  """
   def begin_round() do
     IO.puts("Beginning round")
     Agent.update(__MODULE__, fn state ->
@@ -34,6 +47,15 @@ defmodule HotPotato.StateManager do
     # Agent.cast(__MODULE__, fn  state ->
     #   GameState.start_round(state)
     # end)
+  end
+
+  @doc """
+  Pass the potato from one player to another
+  """
+  def pass_to(slack, channel, from_player_id, to_player_id) do
+    Agent.update(__MODULE__, fn state ->
+      GameState.pass(state, from_player_id, to_player_id)
+    end)
   end
 
   @doc "Get the list of players in the current game"

@@ -8,8 +8,8 @@ defmodule HotPotato.Message do
   @doc """
   Send a notifcation to the channel that the game is going to start soon
   """
-  def send_start_notice(slack, channel) do
-    send_message("Hot Potato starting in 30 seconds - message 'join' to play", channel, slack)
+  def send_start_notice(slack, channel, wait_sec) do
+    send_message("Hot Potato starting in #{wait_sec / 1000} seconds - message 'join' to play", channel, slack)
   end
 
   @doc """

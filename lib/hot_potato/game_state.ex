@@ -36,7 +36,7 @@ defmodule HotPotato.GameState do
     defevent start_round(), data: state do
       new_state = Actions.start_round(state)
       %{:live_players => players} = new_state
-      next_state_atom = if Enum.count(players) < 1 do
+      next_state_atom = if Enum.count(players) < 2 do
         :stopped
       else
         :playing
@@ -49,8 +49,8 @@ defmodule HotPotato.GameState do
   # PLAYING
   defstate playing do
     # player pass potato event
-    defevent pass(_from_user_id, to_user_id), data: state do
-      new_state = Map.put(state, :player_with_potato, to_user_id)
+    defevent pass(_from_user_id, to_player_id), data: state do
+      new_state = Actions.pass(state, to_player_id)
       next_state(:playing, new_state)
     end
 

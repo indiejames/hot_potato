@@ -1,10 +1,10 @@
 defmodule HotPotato.Actions do
   alias HotPotato.Message
 
-  @game_start_delay 30_000 # time players have to join a new game (msec)
+  @game_start_delay 5_000 # time players have to join a new game (msec)
 
   @moduledoc """
-  Functions that take a state, peform an action, then return a new game state
+  Functions that take a state, perform an action, then return a new game state
   """
 
   # choose a player at random
@@ -17,7 +17,7 @@ defmodule HotPotato.Actions do
   """
   def start_game(state) do
     %{:slack => slack, :channel => channel} = state
-    Message.send_start_notice(slack, channel)
+    Message.send_start_notice(slack, channel, @game_start_delay)
 
       # set a timer to begin the first round after players have joined
       # :timer.apply_after(@game_start_delay, HotPotato.StateManager, HotPotato.StateManager.begin_round, [])
@@ -54,9 +54,10 @@ defmodule HotPotato.Actions do
   Start a round of the game
   """
   def start_round(state) do
+    :rand.seed(:exsplus, {101, 102, 103})
     %{:slack => slack, :channel => channel, :live_players => players} = state
     IO.puts("Starting the round")
-    if Enum.count(players) < 1 do
+    if Enum.count(players) < 2 do
       Message.send_warning(slack, channel, "Not enough players, aborting game")
       state
     else
@@ -65,6 +66,13 @@ defmodule HotPotato.Actions do
       Message.send_player_has_potato_message(slack, channel, player_id_with_potato)
       Map.put(state, :player_with_potato, player_id_with_potato)
     end
+  end
+
+  def pass(state, player_id) do
+    # TODO validate that the player is in the live players list
+    %{:slack => slack, :channel => channel} = state
+    Message.send_player_has_potato_message(slack, channel, player_id)
+    Map.put(state, :player_with_potato, player_id)
   end
 
   @doc """
