@@ -12,13 +12,6 @@ defmodule HotPotato.Message do
     send_message("Hot Potato starting in 30 seconds - message 'join' to play", channel, slack)
   end
 
-   @doc """
-  Send a notifcation to the channel that the game has started
-  """
-  def send_started_notice(slack, channel) do
-    send_message("Begin!", channel, slack)
-  end
-
   @doc """
   Send a notifcation to the channel that a player has joined the game
   """
@@ -36,12 +29,41 @@ defmodule HotPotato.Message do
   @doc """
   Send a notication to the channel that a game has started and show a list of the players
   """
-  def send_start_message(slack, channel, player_ids) do
+  def send_round_started_message(slack, channel, player_ids) do
     player_list = player_ids
     |> Enum.to_list()
     |> Enum.map(&("<@#{&1}>"))
     |> Enum.join(",")
-    send_message("The has started!", channel, slack)
-    send_message("The players are #{IO.inspect(player_list)}", channel, slack)
+    send_message("The game has started!", channel, slack)
+    send_message("The players are #{player_list}", channel, slack)
   end
+
+  @doc """
+  Let the players know who has the potato
+  """
+  def send_player_has_potato_message(slack, channel, player_id) do
+    send_message("<@#{player_id}> has the potato", channel, slack)
+  end
+
+  @doc """
+  Let the players know that one of them is dead/out
+  """
+  def send_player_out_message(slack, channel, player_id) do
+    send_message("<@#{player_id}> is out! :", channel, slack)
+  end
+
+  @doc """
+  Send a notice that potato has exploded
+  """
+  def send_boom(slack, channel) do
+    send_message("BOOM!!!", channel, slack)
+  end
+
+  @doc """
+  Send a message announcing the winner of the game
+  """
+  def announce_winner(slack, channel, player_id) do
+    send_message("<@#{player_id}> is the winner!", channel, slack)
+  end
+
 end

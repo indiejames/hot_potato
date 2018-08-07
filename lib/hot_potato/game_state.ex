@@ -1,7 +1,5 @@
 defmodule HotPotato.GameState do
-  alias HotPotato.Message
-
-  @game_start_delay 30_000 # time players have to join a new game (msec)
+  alias HotPotato.Actions
 
   @initial_state %{
     :players => MapSet.new, # all players in the current game (alive or dead)
@@ -12,67 +10,66 @@ defmodule HotPotato.GameState do
 
   use Fsm, initial_state: :stopped, initial_data: @initial_state
 
+  # STOPPED
   defstate stopped do
+    # start game event
     defevent startGame(slack, channel) do
-      Message.send_start_notice(slack, channel)
-
-      # set a timer to begin the first round after players have joined
-      # :timer.apply_after(@game_start_delay, HotPotato.StateManager, HotPotato.StateManager.begin_round, [])
-      spawn(fn ->
-        receive do
-          {:hello, msg}  -> msg
-          after
-            @game_start_delay -> HotPotato.StateManager.begin_round()
-          end
-      end)
-
-
       state = @initial_state
       |> Map.put(:slack, slack)
       |> Map.put(:channel, channel)
-      next_state(:waiting_for_joiners, state)
+
+      new_state = Actions.start_game(state)
+
+      next_state(:waiting_for_joiners, new_state)
     end
   end
 
+  # WAITING_FOR_JOINERS
   defstate waiting_for_joiners do
+    # player join event
     defevent join(player_id), data: state do
-      %{:slack => slack, :channel => channel, :players => players} = state
-
-      new_state = if !MapSet.member?(players, player_id) do
-        Message.send_join_notice(slack, channel, player_id)
-
-        state
-        |> update_in([:players], &(MapSet.put(&1, player_id)))
-        |> update_in([:live_players], &(MapSet.put(&1, player_id)))
-      else
-        Message.send_warning(slack, channel, "I heard you the first time, <@#{player_id}>")
-        state
-      end
-
-      IO.inspect(Map.get(new_state, :players))
+      new_state = Actions.add_player(state, player_id)
       next_state(:waiting_for_joiners, new_state)
     end
 
+    # start round event
     defevent start_round(), data: state do
-      %{:slack => slack, :channel => channel, :players => players} = state
-      IO.puts("Starting the round")
-      if Enum.count(players) < 2 do
-        Message.send_warning(slack, channel, "Not enough players")
-        next_state(:stopped, @initial_state)
+      new_state = Actions.start_round(state)
+      %{:live_players => players} = new_state
+      next_state_atom = if Enum.count(players) < 1 do
+        :stopped
       else
-        Message.send_started_notice(slack, channel)
-        next_state(:playing, state)
+        :playing
       end
+
+      next_state(next_state_atom, new_state)
     end
   end
 
+  # PLAYING
   defstate playing do
-    defevent slowdown(by), data: speed do
-      next_state(:playing, speed - by)
+    # player pass potato event
+    defevent pass(_from_user_id, to_user_id), data: state do
+      new_state = Map.put(state, :player_with_potato, to_user_id)
+      next_state(:playing, new_state)
+    end
+
+    # potato exploded event
+    defevent explode(), data: state do
+      new_state = Actions.kill_player(state)
+      %{:live_players => live_players} = new_state
+      {next_state_atom, new_state} =
+        if Enum.count(live_players) == 1 do
+          {:stopped, Actions.announce_winner(new_state)}
+        else
+          {:playing, Actions.start_round(state)}
+        end
+
+      next_state(next_state_atom, new_state)
     end
 
     defevent stop do
-      next_state(:stopped, 0)
+      next_state(:stopped, %{})
     end
   end
 
