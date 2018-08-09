@@ -2,6 +2,7 @@ defmodule HotPotato.Actions do
   alias HotPotato.Message
 
   @game_start_delay 5_000 # time players have to join a new game (msec)
+  @min_potato_fuse_time 5_000
 
   @moduledoc """
   Functions that take a state, perform an action, then return a new game state
@@ -10,6 +11,26 @@ defmodule HotPotato.Actions do
   # choose a player at random
   defp choose_player(players) do
     Enum.random(players)
+  end
+
+  # create a timer to signal when the paotato explodes
+  defp start_potato_timer(state) do
+    %{:round => round, :players => players} = state
+    player_count = Enum.count(players)
+    duration = System.get_env("AVG_FUSE_TIME") || "10"
+    {duration, _} = Integer.parse(duration)
+    duration = duration * (1 - ((round - 1) / player_count)) * 1_000
+    duration = duration + :rand.normal(0, 0.5) * duration
+    duration = if duration < @min_potato_fuse_time, do: @min_potato_fuse_time, else: duration
+    duration = Kernel.trunc(duration)
+    IO.puts(duration)
+    spawn(fn ->
+      receive do
+        {:not_gonna_happen, msg}  -> msg
+        after
+          duration -> HotPotato.StateManager.explode()
+        end
+    end)
   end
 
   @doc """
@@ -23,13 +44,13 @@ defmodule HotPotato.Actions do
       # :timer.apply_after(@game_start_delay, HotPotato.StateManager, HotPotato.StateManager.begin_round, [])
       spawn(fn ->
         receive do
-          {:hello, msg}  -> msg
+          {:not_gonna_happen, msg}  -> msg
           after
             @game_start_delay -> HotPotato.StateManager.begin_round()
           end
       end)
 
-     state
+     Map.put(state, :round, 0)
   end
 
   @doc """
@@ -55,7 +76,8 @@ defmodule HotPotato.Actions do
   """
   def start_round(state) do
     :rand.seed(:exsplus, {101, 102, 103})
-    %{:slack => slack, :channel => channel, :live_players => players} = state
+    %{:slack => slack, :channel => channel, :live_players => players, :round => round} = state
+    round = round + 1
     IO.puts("Starting the round")
     if Enum.count(players) < 2 do
       Message.send_warning(slack, channel, "Not enough players, aborting game")
@@ -64,7 +86,12 @@ defmodule HotPotato.Actions do
       Message.send_round_started_message(slack, channel, players)
       player_id_with_potato = choose_player(players)
       Message.send_player_has_potato_message(slack, channel, player_id_with_potato)
-      Map.put(state, :player_with_potato, player_id_with_potato)
+      # start a timer for the potato
+      start_potato_timer(state)
+
+      state
+      |> Map.put(:player_with_potato, player_id_with_potato)
+      |> Map.put(:round, round)
     end
   end
 

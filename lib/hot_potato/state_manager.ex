@@ -52,9 +52,15 @@ defmodule HotPotato.StateManager do
   @doc """
   Pass the potato from one player to another
   """
-  def pass_to(slack, channel, from_player_id, to_player_id) do
+  def pass_to(from_player_id, to_player_id) do
     Agent.update(__MODULE__, fn state ->
       GameState.pass(state, from_player_id, to_player_id)
+    end)
+  end
+
+  def explode() do
+    Agent.update(__MODULE__, fn state ->
+      GameState.explode(state)
     end)
   end
 

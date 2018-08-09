@@ -17,7 +17,7 @@ defmodule HotPotato do
 
   match ~r/Hello,\s+<@(.+)>/, :hello
 
-  match ~r/Go potato!/, :start_game
+  match ~r/go potato/, :start_game
 
   match ~r/join/, :join
 
@@ -43,8 +43,8 @@ defmodule HotPotato do
     HotPotato.StateManager.add_player(slack, channel, slack.me.id)
   end
 
-  def pass(slack, channel, from_player_id, to_player_id) do
-    HotPotato.StateManager.pass_to(slack, channel, from_player_id, to_player_id)
+  def pass(_slack, _channel, from_player_id, to_player_id) do
+    HotPotato.StateManager.pass_to(from_player_id, to_player_id)
   end
 
   def handle_connect(slack, state) do
