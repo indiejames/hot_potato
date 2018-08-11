@@ -28,3 +28,10 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
+
+# image sent to the channel when the potato explodes
+config :hot_potato, boom_image: "images/boom_potato.jpg"
+# time players have to join a new game (msec)
+config :hot_potato, game_start_delay: 5_000
+# minimum time a potato will last
+config :hot_potato, min_potato_fuse_time: 5_000

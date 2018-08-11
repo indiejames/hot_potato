@@ -1,9 +1,6 @@
 defmodule HotPotato.Actions do
   alias HotPotato.Message
 
-  @game_start_delay 5_000 # time players have to join a new game (msec)
-  @min_potato_fuse_time 5_000
-
   @moduledoc """
   Functions that take a state, perform an action, then return a new game state
   """
@@ -17,11 +14,12 @@ defmodule HotPotato.Actions do
   defp start_potato_timer(state) do
     %{:round => round, :players => players} = state
     player_count = Enum.count(players)
-    duration = System.get_env("AVG_FUSE_TIME") || "10"
+    min_potato_fuse_time = Application.get_env(:hot_potato, :min_potato_fuse_time)
+    duration = System.get_env("FUSE_TIME") || "30"
     {duration, _} = Integer.parse(duration)
     duration = duration * (1 - ((round - 1) / player_count)) * 1_000
     duration = duration + :rand.normal(0, 0.1) * duration
-    duration = if duration < @min_potato_fuse_time, do: @min_potato_fuse_time, else: duration
+    duration = if duration < min_potato_fuse_time, do: min_potato_fuse_time, else: duration
     duration = Kernel.trunc(duration)
     IO.puts(duration)
     spawn(fn ->
@@ -38,15 +36,15 @@ defmodule HotPotato.Actions do
   """
   def start_game(state) do
     %{:slack => slack, :channel => channel} = state
-    Message.send_start_notice(slack, channel, @game_start_delay)
+    game_start_delay = Application.get_env(:hot_potato, :game_start_delay)
+    Message.send_start_notice(slack, channel, game_start_delay)
 
       # set a timer to begin the first round after players have joined
-      # :timer.apply_after(@game_start_delay, HotPotato.StateManager, HotPotato.StateManager.begin_round, [])
       spawn(fn ->
         receive do
           {:not_gonna_happen, msg}  -> msg
           after
-            @game_start_delay -> HotPotato.StateManager.begin_round()
+            game_start_delay -> HotPotato.StateManager.begin_round()
           end
       end)
 
@@ -95,14 +93,13 @@ defmodule HotPotato.Actions do
   end
 
   def pass(state, from_user_id, to_player_id) do
-    # TODO validate that the player is in the live players list
     %{:slack => slack, :channel => channel, :player_with_potato => player_with_potato, :live_players => players} = state
     cond do
       from_user_id != player_with_potato ->
-        Message.send_warning(slack, channel, "<@#{from_user_id}> you can't pass a potato you don't have")
+        Message.send_warning(slack, channel, "<@#{from_user_id}> you can't pass a potato you don't have!")
         state
       !MapSet.member?(players, to_player_id) ->
-        Message.send_warning(slack, channel, "<@#{from_user_id}> <@#{to_player_id}> is not playing")
+        Message.send_warning(slack, channel, "<@#{from_user_id}> <@#{to_player_id}> is not playing!")
         state
       true ->
         Message.send_player_has_potato_message(slack, channel, to_player_id)
@@ -116,7 +113,7 @@ defmodule HotPotato.Actions do
   """
   def kill_player(state) do
     %{:slack => slack, :channel => channel, :player_with_potato => player_id, :live_players => live_players} = state
-    Message.send_boom(slack, channel)
+    Image.send_boom(channel)
     Message.send_player_out_message(slack, channel, player_id)
     new_live_players = live_players
       |> MapSet.delete(player_id)

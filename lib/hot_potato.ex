@@ -18,6 +18,7 @@ defmodule HotPotato do
     Slack.Bot.start_link(__MODULE__, agent, token)
   end
 
+  # Messages to listen for and actions to take
   match ~r/go potato/, :start_game
 
   match ~r/join/, :join
