@@ -20,7 +20,7 @@ defmodule HotPotato.Actions do
     duration = System.get_env("AVG_FUSE_TIME") || "10"
     {duration, _} = Integer.parse(duration)
     duration = duration * (1 - ((round - 1) / player_count)) * 1_000
-    duration = duration + :rand.normal(0, 0.5) * duration
+    duration = duration + :rand.normal(0, 0.1) * duration
     duration = if duration < @min_potato_fuse_time, do: @min_potato_fuse_time, else: duration
     duration = Kernel.trunc(duration)
     IO.puts(duration)
@@ -75,7 +75,6 @@ defmodule HotPotato.Actions do
   Start a round of the game
   """
   def start_round(state) do
-    :rand.seed(:exsplus, {101, 102, 103})
     %{:slack => slack, :channel => channel, :live_players => players, :round => round} = state
     round = round + 1
     IO.puts("Starting the round")

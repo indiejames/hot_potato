@@ -49,7 +49,7 @@ defmodule HotPotato.Message do
   Let the players know that one of them is dead/out
   """
   def send_player_out_message(slack, channel, player_id) do
-    send_message("<@#{player_id}> is out! :", channel, slack)
+    send_message("<@#{player_id}> is out!", channel, slack)
   end
 
   @doc """
