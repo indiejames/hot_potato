@@ -94,11 +94,20 @@ defmodule HotPotato.Actions do
     end
   end
 
-  def pass(state, player_id) do
+  def pass(state, from_user_id, to_player_id) do
     # TODO validate that the player is in the live players list
-    %{:slack => slack, :channel => channel} = state
-    Message.send_player_has_potato_message(slack, channel, player_id)
-    Map.put(state, :player_with_potato, player_id)
+    %{:slack => slack, :channel => channel, :player_with_potato => player_with_potato, :live_players => players} = state
+    cond do
+      from_user_id != player_with_potato ->
+        Message.send_warning(slack, channel, "<@#{from_user_id}> you can't pass a potato you don't have")
+        state
+      !MapSet.member?(players, to_player_id) ->
+        Message.send_warning(slack, channel, "<@#{from_user_id}> <@#{to_player_id}> is not playing")
+        state
+      true ->
+        Message.send_player_has_potato_message(slack, channel, to_player_id)
+        Map.put(state, :player_with_potato, to_player_id)
+    end
   end
 
   @doc """

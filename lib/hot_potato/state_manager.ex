@@ -15,9 +15,14 @@ defmodule HotPotato.StateManager do
   @doc """
   Start the game when someone requests it
   """
-  def start_game(slack, channel) do
+  def start_game(slack, channel, player_id) do
     Agent.update(__MODULE__, fn state ->
-      GameState.startGame(state, slack, channel)
+      if state.state == :stopped do
+        GameState.startGame(state, slack, channel)
+      else
+        Message.send_warning(slack, channel, "<@#{player_id}> a game is already running")
+        state
+      end
     end)
   end
 
@@ -54,6 +59,7 @@ defmodule HotPotato.StateManager do
   """
   def pass_to(from_player_id, to_player_id) do
     Agent.update(__MODULE__, fn state ->
+      %{}
       GameState.pass(state, from_player_id, to_player_id)
     end)
   end

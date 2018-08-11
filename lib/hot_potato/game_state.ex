@@ -49,8 +49,8 @@ defmodule HotPotato.GameState do
   # PLAYING
   defstate playing do
     # player pass potato event
-    defevent pass(_from_user_id, to_player_id), data: state do
-      new_state = Actions.pass(state, to_player_id)
+    defevent pass(from_user_id, to_player_id), data: state do
+      new_state = Actions.pass(state, from_user_id, to_player_id)
       next_state(:playing, new_state)
     end
 
