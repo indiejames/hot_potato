@@ -29,12 +29,12 @@ defmodule HotPotato.Message do
   @doc """
   Send a notication to the channel that a game has started and show a list of the players
   """
-  def send_round_started_message(slack, channel, player_ids) do
+  def send_round_started_message(slack, channel, player_ids, round) do
     player_list = player_ids
     |> Enum.to_list()
     |> Enum.map(&("<@#{&1}>"))
     |> Enum.join(",")
-    send_message("The game has started!", channel, slack)
+    send_message("Starting round #{round}!", channel, slack)
     send_message("The players are #{player_list}", channel, slack)
   end
 

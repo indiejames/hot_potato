@@ -90,7 +90,7 @@ defmodule HotPotato.Actions do
       Message.send_warning(slack, channel, "Not enough players, aborting game")
       state
     else
-      Message.send_round_started_message(slack, channel, players)
+      Message.send_round_started_message(slack, channel, players, round)
       player_id_with_potato = choose_player(players)
       Message.send_player_has_potato_message(slack, channel, player_id_with_potato)
       # start a timer for the potato
