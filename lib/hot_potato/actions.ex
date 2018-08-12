@@ -10,6 +10,17 @@ defmodule HotPotato.Actions do
     Enum.random(players)
   end
 
+  # run a function after the given delay (in msec)
+  defp run_after_delay(delay, fun) do
+    spawn(fn ->
+      receive do
+        {:not_gonna_happen, msg}  -> msg
+        after
+          delay -> fun.()
+        end
+    end)
+  end
+
   # create a timer to signal when the paotato explodes
   defp start_potato_timer(state) do
     %{:round => round, :players => players} = state
@@ -22,13 +33,14 @@ defmodule HotPotato.Actions do
     duration = if duration < min_potato_fuse_time, do: min_potato_fuse_time, else: duration
     duration = Kernel.trunc(duration)
     IO.puts(duration)
-    spawn(fn ->
-      receive do
-        {:not_gonna_happen, msg}  -> msg
-        after
-          duration -> HotPotato.StateManager.explode()
-        end
-    end)
+    run_after_delay(duration, &HotPotato.StateManager.explode/0)
+    # spawn(fn ->
+    #   receive do
+    #     {:not_gonna_happen, msg}  -> msg
+    #     after
+    #       duration -> HotPotato.StateManager.explode()
+    #     end
+    # end)
   end
 
   @doc """
@@ -39,22 +51,43 @@ defmodule HotPotato.Actions do
     game_start_delay = Application.get_env(:hot_potato, :game_start_delay)
     Message.send_start_notice(slack, channel, game_start_delay)
 
-      # set a timer to begin the first round after players have joined
-      spawn(fn ->
-        receive do
-          {:not_gonna_happen, msg}  -> msg
-          after
-            game_start_delay -> HotPotato.StateManager.begin_round()
-          end
-      end)
+    # set a timer to begin the first round after players have joined
+    spawn(fn ->
+      receive do
+        {:not_gonna_happen, msg}  -> msg
+        after
+          (game_start_delay - 5_000) -> HotPotato.StateManager.do_countdown()
+        end
+    end)
 
-     Map.put(state, :round, 0)
+     state
+     |> Map.put(:round, 0)
+     |> Map.put(:countdown, 5)
+  end
+
+  def do_countdown(state) do
+    %{:channel => channel, :countdown => countdown} = state
+    if countdown > -1 do
+      base_image = Application.get_env(:hot_potato, :countdown_image)
+      image = String.replace(base_image, "#", Integer.to_string(countdown))
+      image_name = Path.basename(image)
+      Image.send_image(channel, image, image_name)
+
+      # set a timer for this step of the countdown
+      run_after_delay(200, &HotPotato.StateManager.do_countdown/0)
+
+    else
+      run_after_delay(200, &HotPotato.StateManager.begin_round/0)
+    end
+
+    Map.put(state, :countdown, countdown - 1)
   end
 
   @doc """
   Add a player
   """
   def add_player(state, player_id) do
+    IO.puts("Adding player")
     %{:slack => slack, :channel => channel, :players => players} = state
 
     if !MapSet.member?(players, player_id) do
@@ -92,6 +125,9 @@ defmodule HotPotato.Actions do
     end
   end
 
+  @doc """
+  Pass the potato from one player to another
+  """
   def pass(state, from_user_id, to_player_id) do
     %{:slack => slack, :channel => channel, :player_with_potato => player_with_potato, :live_players => players} = state
     cond do

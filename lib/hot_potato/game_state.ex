@@ -32,8 +32,22 @@ defmodule HotPotato.GameState do
       next_state(:waiting_for_joiners, new_state)
     end
 
+    # start the countdown
+    defevent do_countdown(), data: state do
+      new_state = Actions.do_countdown(state)
+      next_state(:countdown, new_state)
+    end
+  end
+
+  # COUNT_DOWN
+  defstate countdown do
+    defevent do_countdown, data: state do
+      new_state = Actions.do_countdown(state)
+      next_state(:countdown, new_state)
+    end
+
     # start round event
-    defevent start_round(), data: state do
+    defevent start_round, data: state do
       new_state = Actions.start_round(state)
       %{:live_players => players} = new_state
       next_state_atom = if Enum.count(players) < 2 do
@@ -74,7 +88,7 @@ defmodule HotPotato.GameState do
   end
 
   # prevent exceptions for unknown or improper events
-  # defevent _ do
-  # end
+  defevent _ do
+  end
 
 end
