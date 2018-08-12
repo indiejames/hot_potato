@@ -35,6 +35,6 @@ config :hot_potato, game_start_delay: 10_000
 config :hot_potato, min_potato_fuse_time: 5_000
 # image sent to the channel when the potato explodes
 config :hot_potato, boom_image: "images/boom_potato.jpg"
-# coundown image base name
-config :hot_potato, countdown_image: "images/countdown_#.jpg"
+# coundown image
+config :hot_potato, countdown_image: "images/countdown.gif"
 

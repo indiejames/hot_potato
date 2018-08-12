@@ -41,10 +41,10 @@ defmodule HotPotato.GameState do
 
   # COUNT_DOWN
   defstate countdown do
-    defevent do_countdown, data: state do
-      new_state = Actions.do_countdown(state)
-      next_state(:countdown, new_state)
-    end
+    # defevent do_countdown, data: state do
+    #   new_state = Actions.do_countdown(state)
+    #   next_state(:countdown, new_state)
+    # end
 
     # start round event
     defevent start_round, data: state do

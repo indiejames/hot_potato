@@ -5,9 +5,9 @@ defmodule Image do
   """
 
   # Send the given `file` to the channel using `fileName`
-  def send_image(channel, file, fileName) do
+  def send_image(channel, file, file_name) do
     token = System.get_env("TOKEN")
-    Slack.Web.Files.upload(file, fileName, %{token: token, as_user: true, channels: [channel]})
+    Slack.Web.Files.upload(file, file_name, %{token: token, as_user: true, channels: [channel]})
   end
 
   @doc """

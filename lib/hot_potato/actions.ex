@@ -66,21 +66,13 @@ defmodule HotPotato.Actions do
   end
 
   def do_countdown(state) do
-    %{:channel => channel, :countdown => countdown} = state
-    if countdown > -1 do
-      base_image = Application.get_env(:hot_potato, :countdown_image)
-      image = String.replace(base_image, "#", Integer.to_string(countdown))
-      image_name = Path.basename(image)
-      Image.send_image(channel, image, image_name)
+    %{:channel => channel} = state
+    file = Application.get_env(:hot_potato, :countdown_image)
+    file_name = Path.basename(file)
+    Image.send_image(channel, file, file_name)
+    run_after_delay(5_500, &HotPotato.StateManager.begin_round/0)
 
-      # set a timer for this step of the countdown
-      run_after_delay(200, &HotPotato.StateManager.do_countdown/0)
-
-    else
-      run_after_delay(200, &HotPotato.StateManager.begin_round/0)
-    end
-
-    Map.put(state, :countdown, countdown - 1)
+    state
   end
 
   @doc """

@@ -16,7 +16,6 @@ defmodule HotPotato.StateManager do
   Start the game when someone requests it
   """
   def start_game(slack, channel, player_id) do
-    Image.send_image(channel, "images/countdown.gif", "countdown.gif")
     Agent.update(__MODULE__, fn state ->
       if state.state == :stopped do
         GameState.startGame(state, slack, channel)
@@ -55,9 +54,6 @@ defmodule HotPotato.StateManager do
     Agent.update(__MODULE__, fn state ->
       GameState.start_round(state)
     end)
-    # Agent.cast(__MODULE__, fn  state ->
-    #   GameState.start_round(state)
-    # end)
   end
 
   @doc """
