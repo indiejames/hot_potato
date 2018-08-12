@@ -34,13 +34,6 @@ defmodule HotPotato.Actions do
     duration = Kernel.trunc(duration)
     IO.puts(duration)
     run_after_delay(duration, &HotPotato.StateManager.explode/0)
-    # spawn(fn ->
-    #   receive do
-    #     {:not_gonna_happen, msg}  -> msg
-    #     after
-    #       duration -> HotPotato.StateManager.explode()
-    #     end
-    # end)
   end
 
   @doc """
@@ -52,17 +45,9 @@ defmodule HotPotato.Actions do
     Message.send_start_notice(slack, channel, game_start_delay)
 
     # set a timer to begin the first round after players have joined
-    spawn(fn ->
-      receive do
-        {:not_gonna_happen, msg}  -> msg
-        after
-          (game_start_delay - 5_000) -> HotPotato.StateManager.do_countdown()
-        end
-    end)
+    run_after_delay(game_start_delay - 5_000, &HotPotato.StateManager.do_countdown/0)
 
-     state
-     |> Map.put(:round, 0)
-     |> Map.put(:countdown, 5)
+     Map.put(state, :round, 0)
   end
 
   def do_countdown(state) do
