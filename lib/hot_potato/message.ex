@@ -66,4 +66,11 @@ defmodule HotPotato.Message do
     send_message("<@#{player_id}> is the winner!", channel, slack)
   end
 
+  @doc """
+  Send a message announcing the second place player
+  """
+  def announce_second_place(slack, channel, player_id) do
+    send_message("And in second place - <@#{player_id}>!", channel, slack)
+  end
+
 end

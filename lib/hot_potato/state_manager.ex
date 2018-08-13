@@ -71,6 +71,12 @@ defmodule HotPotato.StateManager do
     end)
   end
 
+  def announce_second_place() do
+    Agent.update(__MODULE__, fn state ->
+      GameState.second_place_award(state)
+    end)
+  end
+
   @doc "Get the list of players in the current game"
   def players() do
     Agent.get(__MODULE__, fn state ->

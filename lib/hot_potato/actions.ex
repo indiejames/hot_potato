@@ -135,14 +135,35 @@ defmodule HotPotato.Actions do
     state
       |> Map.put(:player_with_potato, new_player_with_potato)
       |> Map.put(:live_players, new_live_players)
+      # this is slightly tricky, because this may not be the final round, but by the end of the
+      # game the :second_place value in the state map will have the right user_id
+      |> Map.put(:second_place, player_id)
   end
 
   @doc """
   Send a message announcing the winner of the game
   """
   def announce_winner(state) do
-    %{:slack => slack, :channel => channel, :player_with_potato => player_id} = state
+    # this is a little confusing beacuse it would seem like the player with the potato
+    # would not be the winner, but in this case there is only one player and they
+    # get handed the potato by the `kill_player` action when the second to last player
+    # dies
+    %{:slack => slack, :channel => channel, :player_with_potato => player_id, :users => users} = state
     Message.announce_winner(slack, channel, player_id)
+    user_name = users[player_id]
+    Image.send_award(channel, Application.get_env(:hot_potato, :winner_award_image), user_name)
+    run_after_delay(750, &HotPotato.StateManager.announce_second_place/0)
+    state
+  end
+
+  @doc """
+  Send a message announcing the second placer player
+  """
+  def announce_second_place(state) do
+    %{:slack => slack, :channel => channel, :second_place => player_id, :users => users} = state
+    Message.announce_second_place(slack, channel, player_id)
+    user_name = users[player_id]
+    Image.send_award(channel, Application.get_env(:hot_potato, :second_place_award_image), user_name)
     state
   end
 end

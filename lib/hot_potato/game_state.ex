@@ -14,9 +14,16 @@ defmodule HotPotato.GameState do
   defstate stopped do
     # start game event
     defevent startGame(slack, channel) do
+      # we need the map of user ids to user names so we can send awards later
+      users = Slack.Web.Users.list(%{token: System.get_env("TOKEN")})
+      |> Map.get("members")
+      |> Enum.reduce(%{}, fn(member, acc) ->
+        Map.put(acc, member["id"], member["name"])
+      end)
       state = @initial_state
       |> Map.put(:slack, slack)
       |> Map.put(:channel, channel)
+      |> Map.put(:users, users)
 
       new_state = Actions.start_game(state)
 
@@ -74,7 +81,7 @@ defmodule HotPotato.GameState do
       %{:live_players => live_players} = new_state
       {next_state_atom, new_state} =
         if Enum.count(live_players) == 1 do
-          {:stopped, Actions.announce_winner(new_state)}
+          {:award_ceremony, Actions.announce_winner(new_state)}
         else
           {:playing, Actions.start_round(state)}
         end
@@ -84,6 +91,14 @@ defmodule HotPotato.GameState do
 
     defevent stop do
       next_state(:stopped, %{})
+    end
+  end
+
+  # AWARD_CEREMONY
+  defstate award_ceremony do
+    defevent second_place_award(), data: state do
+      Actions.announce_second_place(state)
+      next_state(:stopped, state)
     end
   end
 

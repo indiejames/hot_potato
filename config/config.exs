@@ -37,4 +37,8 @@ config :hot_potato, min_potato_fuse_time: 5_000
 config :hot_potato, boom_image: "images/boom_potato.jpg"
 # coundown image
 config :hot_potato, countdown_image: "images/countdown.gif"
+# image to use to render the winner award
+config :hot_potato, winner_award_image: "images/blue_ribbon.png"
+# image to use to render second place award
+config :hot_potato, second_place_award_image: "images/red_ribbon.png"
 
