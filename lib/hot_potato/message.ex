@@ -26,6 +26,10 @@ defmodule HotPotato.Message do
     send_message("#{message} :warning:", channel, slack)
   end
 
+  def send_round_countdown_message(slack, channel, round) do
+    send_message("Round #{round} starting in", channel, slack)
+  end
+
   @doc """
   Send a notication to the channel that a game has started and show a list of the players
   """

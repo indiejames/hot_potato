@@ -38,7 +38,7 @@ defmodule HotPotato.GameStateMachine do
   # WAITING_FOR_JOINERS
   defstate waiting_for_joiners do
     # player join event
-    defevent join(player_id), data: data do
+    defevent join_request(player_id), data: data do
       new_data = Actions.add_player(data, player_id)
       next_state(:waiting_for_joiners, new_data)
     end
@@ -87,7 +87,7 @@ defmodule HotPotato.GameStateMachine do
         if Enum.count(live_players) == 1 do
           {:award_ceremony, Actions.announce_winner(new_data)}
         else
-          {:playing, Actions.start_round(new_data)}
+          {:countdown, Actions.do_countdown(new_data)}
         end
 
       next_state(next_state_atom, new_data)

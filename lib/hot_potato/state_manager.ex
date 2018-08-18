@@ -32,7 +32,7 @@ defmodule HotPotato.StateManager do
   def add_player(slack, channel, player_id) do
     Agent.update(__MODULE__, fn gsm ->
       if gsm.state == :waiting_for_joiners do
-        GameStateMachine.join(gsm, player_id)
+        GameStateMachine.join_request(gsm, player_id)
       else
         Message.send_warning(slack, channel, "<@#{player_id}> you can't join right now")
         gsm
