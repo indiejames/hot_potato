@@ -21,7 +21,7 @@ defmodule HotPotato.Actions do
     end)
   end
 
-  # create a timer to signal when the paotato explodes
+  # create a timer to signal when the potato explodes
   defp start_potato_timer(state) do
     %{:round => round, :players => players} = state
     player_count = Enum.count(players)
@@ -53,7 +53,6 @@ defmodule HotPotato.Actions do
   @doc """
   Show the countdown animation image and wait for a bit
   """
-  end
   def do_countdown(state) do
     %{:channel => channel} = state
     file = Application.get_env(:hot_potato, :countdown_image)
