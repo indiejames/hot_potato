@@ -83,7 +83,7 @@ defmodule HotPotato.GameState do
         if Enum.count(live_players) == 1 do
           {:award_ceremony, Actions.announce_winner(new_state)}
         else
-          {:playing, Actions.start_round(state)}
+          {:playing, Actions.start_round(new_state)}
         end
 
       next_state(next_state_atom, new_state)

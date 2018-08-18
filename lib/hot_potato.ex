@@ -21,7 +21,7 @@ defmodule HotPotato do
   # Messages to listen for and actions to take
   match ~r/go potato/, :start_game
 
-  match ~r/join/, :join
+  match ~r/^join/, :join
 
   match ~r/pass to <@(.+?)>/, :pass
 

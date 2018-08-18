@@ -50,6 +50,10 @@ defmodule HotPotato.Actions do
      Map.put(state, :round, 0)
   end
 
+  @doc """
+  Show the countdown animation image and wait for a bit
+  """
+  end
   def do_countdown(state) do
     %{:channel => channel} = state
     file = Application.get_env(:hot_potato, :countdown_image)
