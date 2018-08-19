@@ -22,7 +22,7 @@ defmodule HotPotato.GameStateMachine do
       users = Slack.Web.Users.list(%{token: System.get_env("TOKEN")})
       |> Map.get("members")
       |> Enum.reduce(%{}, fn(member, acc) ->
-        Map.put(acc, member["id"], member["name"])
+        Map.put(acc, member["id"], %{:name => member["real_name"], :is_bot => member["is_bot"]})
       end)
       data = @initial_data
       |> Map.put(:slack, slack)

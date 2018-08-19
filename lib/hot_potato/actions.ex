@@ -154,7 +154,7 @@ defmodule HotPotato.Actions do
     # dies
     %{:slack => slack, :channel => channel, :player_with_potato => player_id, :users => users} = game_data
     Message.announce_winner(slack, channel, player_id)
-    user_name = users[player_id]
+    user_name = users[player_id][:name]
     Image.send_award(channel, Application.get_env(:hot_potato, :winner_award_image), user_name)
     run_after_delay(750, &HotPotato.StateManager.announce_second_place/0)
     game_data
@@ -166,7 +166,7 @@ defmodule HotPotato.Actions do
   def announce_second_place(game_data) do
     %{:slack => slack, :channel => channel, :second_place => player_id, :users => users} = game_data
     Message.announce_second_place(slack, channel, player_id)
-    user_name = users[player_id]
+    user_name = users[player_id][:name]
     Image.send_award(channel, Application.get_env(:hot_potato, :second_place_award_image), user_name)
     game_data
   end
