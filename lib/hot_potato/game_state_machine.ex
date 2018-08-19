@@ -18,6 +18,10 @@ defmodule HotPotato.GameStateMachine do
   defstate stopped do
     # start game event
     defevent game_started(slack, channel) do
+      # penatly for bots - they will need to wait at least this long before passing the potato
+      bot_penalty = (System.get_env("BOT_PENALTY") || "0")
+      |> Integer.parse()
+
       # we need the map of user ids to user names so we can send awards later
       users = Slack.Web.Users.list(%{token: System.get_env("TOKEN")})
       |> Map.get("members")
@@ -28,6 +32,7 @@ defmodule HotPotato.GameStateMachine do
       |> Map.put(:slack, slack)
       |> Map.put(:channel, channel)
       |> Map.put(:users, users)
+      |> Map.put(:bot_penalty, bot_penalty)
 
       new_data = Actions.start_game(data)
 

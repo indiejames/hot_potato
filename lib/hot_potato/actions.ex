@@ -94,6 +94,7 @@ defmodule HotPotato.Actions do
       Message.send_warning(slack, channel, "Not enough players, aborting game")
       game_data
     else
+      now = :os.system_time(:millisecond)
       Message.send_round_started_message(slack, channel, players, round)
       player_id_with_potato = choose_player(players)
       Message.send_player_has_potato_message(slack, channel, player_id_with_potato)
@@ -103,24 +104,71 @@ defmodule HotPotato.Actions do
       game_data
       |> Map.put(:player_with_potato, player_id_with_potato)
       |> Map.put(:round, round)
+      |> Map.put(:last_pass_time, now)
     end
+  end
+
+  # ehck to see if the bot pentaly has been paid
+  defp bot_penalty_applies?(game_data) do
+    now = :os.system_time(:millisecond)
+    %{
+      :last_pass_time => last_pass_time,
+      :bot_penalty => bot_penalty
+    } = game_data
+
+    now - last_pass_time < bot_penalty
+  end
+
+  # bot is attempting to pass the potato but hasn't waited long enough
+  defp do_pass(game_data, from_player_id, _to_player_id, true) do
+    now = :os.system_time(:millisecond)
+    %{
+      :slack => slack,
+      :channel => channel
+    } = game_data
+    Message.send_bot_time_penalty(slack, channel, from_player_id)
+    # reset the penalty time for the bot
+    Map.put(game_data, :last_pass_time, now)
+  end
+
+  # penalty does not apply
+  defp do_pass(game_data, _from_player_id, to_player_id, false) do
+    now = :os.system_time(:millisecond)
+    %{
+      :slack => slack,
+      :channel => channel
+    } = game_data
+    Message.send_player_has_potato_message(slack, channel, to_player_id)
+    game_data
+    |> Map.put(:player_with_potato, to_player_id)
+    |> Map.put(:last_pass_time, now)
   end
 
   @doc """
   Pass the potato from one player to another
   """
-  def pass(game_data, from_user_id, to_player_id) do
-    %{:slack => slack, :channel => channel, :player_with_potato => player_with_potato, :live_players => players} = game_data
+  def pass(game_data, from_player_id, to_player_id) do
+    %{
+      :slack => slack,
+      :channel => channel,
+      :player_with_potato => player_with_potato,
+      :live_players => players
+    } = game_data
+
+    do_penalty = game_data.users[from_player_id][:is_bot] && bot_penalty_applies?(game_data)
+
     cond do
-      from_user_id != player_with_potato ->
-        Message.send_warning(slack, channel, "<@#{from_user_id}> you can't pass a potato you don't have!")
+      # from user doesn't actually have the potato
+      from_player_id != player_with_potato ->
+        Message.send_warning(slack, channel, "<@#{from_player_id}> you can't pass a potato you don't have!")
         game_data
+      # trying to pass to a user that isn't playing
       !MapSet.member?(players, to_player_id) ->
-        Message.send_warning(slack, channel, "<@#{from_user_id}> <@#{to_player_id}> is not playing!")
+        Message.send_warning(slack, channel, "<@#{from_player_id}> <@#{to_player_id}> is not playing!")
         game_data
+      # valid pass attempt
       true ->
-        Message.send_player_has_potato_message(slack, channel, to_player_id)
-        Map.put(game_data, :player_with_potato, to_player_id)
+        do_pass(game_data, from_player_id, to_player_id, do_penalty)
     end
   end
 
