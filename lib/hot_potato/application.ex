@@ -8,6 +8,9 @@ defmodule HotPotato.Application do
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
+    # connect to Slack
+    HotPotato.connect()
+
     # Define workers and child supervisors to be supervised
     children = [
       # Starts a worker by calling: HotPotato.Worker.start_link(arg1, arg2, arg3)
