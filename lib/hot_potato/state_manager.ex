@@ -10,6 +10,9 @@ defmodule HotPotato.StateManager do
   # default fuse time (per player) in ms
   @default_fuse_time "5000"
 
+  # delay between award notifications in ms
+  @delay_between_awards 3000
+
   @doc "Starts the agaent using the module name as its name with an empty map as its state"
   def start_link(_) do
     Agent.start_link(fn -> GameStateMachine.new end, name: __MODULE__)
@@ -110,15 +113,25 @@ defmodule HotPotato.StateManager do
       new_gsm = GameStateMachine.explode(gsm)
       if new_gsm.state === :countdown do
         run_after_delay(5_500, &begin_round/0)
+      else
+        # end of game
+        run_after_delay(@delay_between_awards, &do_awards/0)
       end
-
       new_gsm
     end)
   end
 
-  def announce_second_place() do
+  def do_awards() do
     Agent.update(__MODULE__, fn gsm ->
-      GameStateMachine.second_place_award(gsm)
+      new_gsm = GameStateMachine.tick(gsm)
+      if new_gsm.state != :stopped do
+        IO.puts("do_awards will run again")
+        run_after_delay(@delay_between_awards, &do_awards/0)
+      else
+        IO.puts("do_awards will not run again")
+      end
+
+      new_gsm
     end)
   end
 
@@ -128,10 +141,4 @@ defmodule HotPotato.StateManager do
       Map.get(gsm.data, :players, [])
     end)
   end
-
-  # def running?() do
-  #   Agent.get(__MODULE__, fn state ->
-  #     Map.get(state, :game_state, []) == :running
-  #   end)
-  # end
 end

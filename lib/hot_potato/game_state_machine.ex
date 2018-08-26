@@ -90,7 +90,7 @@ defmodule HotPotato.GameStateMachine do
       %{:live_players => live_players} = new_data
       {next_state_atom, new_data} =
         if Enum.count(live_players) == 1 do
-          {:award_ceremony, Actions.announce_winner(new_data)}
+          {:award_ceremony, new_data}
         else
           {:countdown, Actions.do_countdown(new_data)}
         end
@@ -103,9 +103,19 @@ defmodule HotPotato.GameStateMachine do
     end
   end
 
-  # AWARD_CEREMONY
+  # AWARD_CEREMONY WINNER
   defstate award_ceremony do
-    defevent second_place_award(), data: data do
+    # a timer expired indicating it's time to show something
+    defevent tick(), data: data do
+      new_data = Actions.announce_winner(data)
+      next_state(:award_ceremony_2nd_place, new_data)
+    end
+  end
+
+  # AWARD CEREMONY 2ND PLACE
+  defstate award_ceremony_2nd_place do
+    # a timer expired indicating it's time to show something
+    defevent tick(), data: data do
       Actions.announce_second_place(data)
       next_state(:stopped, data)
     end

@@ -187,7 +187,6 @@ defmodule HotPotato.Actions do
     Message.announce_winner(slack, channel, player_id)
     user_name = users[player_id][:name]
     Image.send_award(channel, Application.get_env(:hot_potato, :winner_award_image), user_name)
-    run_after_delay(750, &HotPotato.StateManager.announce_second_place/0)
     game_data
   end
 
