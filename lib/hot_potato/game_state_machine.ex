@@ -19,7 +19,7 @@ defmodule HotPotato.GameStateMachine do
     # start game event
     defevent game_started(slack, channel) do
       # penatly for bots - they will need to wait at least this long before passing the potato
-      bot_penalty = (System.get_env("BOT_PENALTY") || "0")
+      {bot_penalty, ""} = (System.get_env("BOT_PENALTY") || "0")
       |> Integer.parse()
 
       # we need the map of user ids to user names so we can send awards later

@@ -26,9 +26,9 @@ defmodule HotPotato.Actions do
     %{:round => round, :players => players} = game_data
     player_count = Enum.count(players)
     min_potato_fuse_time = Application.get_env(:hot_potato, :min_potato_fuse_time)
-    duration = System.get_env("FUSE_TIME") || "30"
+    duration = System.get_env("FUSE_TIME") || "5000"
     {duration, _} = Integer.parse(duration)
-    duration = duration * (1 - ((round - 1) / player_count)) * 1_000
+    duration = duration * Enum.count(players)
     duration = duration + :rand.normal(0, 0.1) * duration
     duration = if duration < min_potato_fuse_time, do: min_potato_fuse_time, else: duration
     duration = Kernel.trunc(duration)
@@ -116,6 +116,9 @@ defmodule HotPotato.Actions do
       :bot_penalty => bot_penalty
     } = game_data
 
+    duration = now - last_pass_time
+    IO.puts("duration = #{duration}")
+    IO.puts("bot_penalty = #{bot_penalty}")
     now - last_pass_time < bot_penalty
   end
 
@@ -156,15 +159,16 @@ defmodule HotPotato.Actions do
     } = game_data
 
     do_penalty = game_data.users[from_player_id][:is_bot] && bot_penalty_applies?(game_data)
+    IO.puts("do_penalty = #{do_penalty}")
 
     cond do
       # from user doesn't actually have the potato
       from_player_id != player_with_potato ->
-        Message.send_warning(slack, channel, "<@#{from_player_id}> you can't pass a potato you don't have!")
+        Message.send_warning(slack, channel, "<@#{from_player_id}>, you can't pass a potato you don't have!")
         game_data
       # trying to pass to a user that isn't playing
       !MapSet.member?(players, to_player_id) ->
-        Message.send_warning(slack, channel, "<@#{from_player_id}> <@#{to_player_id}> is not playing!")
+        Message.send_warning(slack, channel, "<@#{from_player_id}>, <@#{to_player_id}> is not playing!")
         game_data
       # valid pass attempt
       true ->
