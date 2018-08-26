@@ -5,12 +5,7 @@ defmodule HotPotato.Actions do
   Functions that take a game_data map, perform an action, then return a new game game_data map
   """
 
-  # choose a player at random
-  defp choose_player(players) do
-    Enum.random(players)
-  end
-
-  # run a function after the given delay (in msec)
+  # run a function after the given delay (in ms)
   defp run_after_delay(delay, fun) do
     spawn(fn ->
       receive do
@@ -21,19 +16,9 @@ defmodule HotPotato.Actions do
     end)
   end
 
-  # create a timer to signal when the potato explodes
-  defp start_potato_timer(game_data) do
-    %{:round => round, :players => players} = game_data
-    player_count = Enum.count(players)
-    min_potato_fuse_time = Application.get_env(:hot_potato, :min_potato_fuse_time)
-    duration = System.get_env("FUSE_TIME") || "5000"
-    {duration, _} = Integer.parse(duration)
-    duration = duration * Enum.count(players)
-    duration = duration + :rand.normal(0, 0.1) * duration
-    duration = if duration < min_potato_fuse_time, do: min_potato_fuse_time, else: duration
-    duration = Kernel.trunc(duration)
-    IO.puts(duration)
-    run_after_delay(duration, &HotPotato.StateManager.explode/0)
+  # choose a player at random
+  defp choose_player(players) do
+    Enum.random(players)
   end
 
   @doc """
@@ -43,11 +28,7 @@ defmodule HotPotato.Actions do
     %{:slack => slack, :channel => channel} = game_data
     game_start_delay = Application.get_env(:hot_potato, :game_start_delay)
     Message.send_start_notice(slack, channel, game_start_delay)
-
-    # set a timer to begin the first round after players have joined
-    run_after_delay(game_start_delay - 5_000, &HotPotato.StateManager.do_countdown/0)
-
-     Map.put(game_data, :round, 0)
+    Map.put(game_data, :round, 0)
   end
 
   @doc """
@@ -59,8 +40,6 @@ defmodule HotPotato.Actions do
     file = Application.get_env(:hot_potato, :countdown_image)
     file_name = Path.basename(file)
     Image.send_image(channel, file, file_name)
-    run_after_delay(5_500, &HotPotato.StateManager.begin_round/0)
-
     game_data
   end
 
@@ -98,8 +77,6 @@ defmodule HotPotato.Actions do
       Message.send_round_started_message(slack, channel, players, round)
       player_id_with_potato = choose_player(players)
       Message.send_player_has_potato_message(slack, channel, player_id_with_potato)
-      # start a timer for the potato
-      start_potato_timer(game_data)
 
       game_data
       |> Map.put(:player_with_potato, player_id_with_potato)
@@ -157,6 +134,8 @@ defmodule HotPotato.Actions do
       :player_with_potato => player_with_potato,
       :live_players => players
     } = game_data
+
+    IO.puts("pass() Line 140")
 
     do_penalty = game_data.users[from_player_id][:is_bot] && bot_penalty_applies?(game_data)
     IO.puts("do_penalty = #{do_penalty}")
