@@ -2,19 +2,8 @@ defmodule HotPotato.Actions do
   alias HotPotato.Message
 
   @moduledoc """
-  Functions that take a game_data map, perform an action, then return a new game game_data map
+  Functions that take a game data map, perform an action, then return an updated game data map
   """
-
-  # run a function after the given delay (in ms)
-  defp run_after_delay(delay, fun) do
-    spawn(fn ->
-      receive do
-        {:not_gonna_happen, msg}  -> msg
-        after
-          delay -> fun.()
-        end
-    end)
-  end
 
   # choose a player at random
   defp choose_player(players) do
