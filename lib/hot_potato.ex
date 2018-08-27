@@ -46,7 +46,7 @@ defmodule HotPotato do
     IO.puts("Player #{from_player} wants to join")
     HotPotato.StateManager.add_player(slack, channel, from_player)
     # TODO remove this for real games - needed now for testing by myself
-    HotPotato.StateManager.add_player(slack, channel, slack.me.id)
+    # HotPotato.StateManager.add_player(slack, channel, slack.me.id)
   end
 
   @doc """
