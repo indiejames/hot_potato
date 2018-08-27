@@ -15,7 +15,6 @@ defmodule HotPotato.Application do
     children = [
       # Starts a worker by calling: HotPotato.Worker.start_link(arg1, arg2, arg3)
       # worker(HotPotato.Worker, [arg1, arg2, arg3]),
-
     ]
 
     # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html

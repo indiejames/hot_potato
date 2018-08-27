@@ -15,17 +15,17 @@ defmodule HotPotato.StateManager do
 
   @doc "Starts the agaent using the module name as its name with an empty map as its state"
   def start_link(_) do
-    Agent.start_link(fn -> GameStateMachine.new end, name: __MODULE__)
+    Agent.start_link(fn -> GameStateMachine.new() end, name: __MODULE__)
   end
 
   # run a function after the given delay (in ms)
   defp run_after_delay(delay, fun) do
     spawn(fn ->
       receive do
-        {:not_gonna_happen, msg}  -> msg
-        after
-          delay -> fun.()
-        end
+        {:not_gonna_happen, msg} -> msg
+      after
+        delay -> fun.()
+      end
     end)
   end
 
@@ -92,6 +92,7 @@ defmodule HotPotato.StateManager do
   """
   def begin_round() do
     IO.puts("Beginning round")
+
     Agent.update(__MODULE__, fn gsm ->
       new_gsm = GameStateMachine.start_round(gsm)
       start_potato_timer(new_gsm.data)
@@ -111,12 +112,14 @@ defmodule HotPotato.StateManager do
   def explode() do
     Agent.update(__MODULE__, fn gsm ->
       new_gsm = GameStateMachine.explode(gsm)
+
       if new_gsm.state === :countdown do
         run_after_delay(5_500, &begin_round/0)
       else
         # end of game
         run_after_delay(@delay_between_awards, &do_awards/0)
       end
+
       new_gsm
     end)
   end
@@ -124,6 +127,7 @@ defmodule HotPotato.StateManager do
   def do_awards() do
     Agent.update(__MODULE__, fn gsm ->
       new_gsm = GameStateMachine.tick(gsm)
+
       if new_gsm.state != :stopped do
         IO.puts("do_awards will run again")
         run_after_delay(@delay_between_awards, &do_awards/0)

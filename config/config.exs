@@ -41,4 +41,3 @@ config :hot_potato, countdown_image: "images/countdown.gif"
 config :hot_potato, winner_award_image: "images/blue_ribbon.png"
 # image to use to render second place award
 config :hot_potato, second_place_award_image: "images/red_ribbon.png"
-

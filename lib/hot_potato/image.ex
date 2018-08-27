@@ -1,5 +1,4 @@
 defmodule Image do
-
   @moduledoc """
   Functions to send images to the Slack channel
   """
@@ -21,13 +20,13 @@ defmodule Image do
     image_width = 166
     point_size = 20
     pixel_size = 11
-    offset = image_width / 2 - (String.length(text) / 2) * pixel_size
+    offset = image_width / 2 - String.length(text) / 2 * pixel_size
     IO.puts(offset)
 
     %Mogrify.Image{path: file}
     |> Mogrify.custom("font", "Courier")
     |> Mogrify.custom("pointsize", "#{point_size}")
-    |> Mogrify.Draw.text( offset, 90, text)
+    |> Mogrify.Draw.text(offset, 90, text)
     |> Mogrify.save()
     |> Map.get(:path)
   end
@@ -39,6 +38,7 @@ defmodule Image do
   """
   def send_award(channel, file, text) do
     path = create_award_annotated_image(file, text)
+
     try do
       send_image(channel, path, Path.basename(file))
     after

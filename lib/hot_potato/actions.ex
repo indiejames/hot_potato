@@ -43,8 +43,8 @@ defmodule HotPotato.Actions do
       Message.send_join_notice(slack, channel, player_id)
 
       game_data
-      |> update_in([:players], &(MapSet.put(&1, player_id)))
-      |> update_in([:live_players], &(MapSet.put(&1, player_id)))
+      |> update_in([:players], &MapSet.put(&1, player_id))
+      |> update_in([:live_players], &MapSet.put(&1, player_id))
     else
       Message.send_warning(slack, channel, "I heard you the first time, <@#{player_id}>")
       game_data
@@ -58,6 +58,7 @@ defmodule HotPotato.Actions do
     %{:slack => slack, :channel => channel, :live_players => players, :round => round} = game_data
     round = round + 1
     IO.puts("Starting the round")
+
     if Enum.count(players) < 2 do
       Message.send_warning(slack, channel, "Not enough players, aborting game")
       game_data
@@ -77,6 +78,7 @@ defmodule HotPotato.Actions do
   # ehck to see if the bot pentaly has been paid
   defp bot_penalty_applies?(game_data) do
     now = :os.system_time(:millisecond)
+
     %{
       :last_pass_time => last_pass_time,
       :bot_penalty => bot_penalty
@@ -91,10 +93,12 @@ defmodule HotPotato.Actions do
   # bot is attempting to pass the potato but hasn't waited long enough
   defp do_pass(game_data, from_player_id, _to_player_id, true) do
     now = :os.system_time(:millisecond)
+
     %{
       :slack => slack,
       :channel => channel
     } = game_data
+
     Message.send_bot_time_penalty(slack, channel, from_player_id)
     # reset the penalty time for the bot
     Map.put(game_data, :last_pass_time, now)
@@ -103,11 +107,14 @@ defmodule HotPotato.Actions do
   # penalty does not apply
   defp do_pass(game_data, _from_player_id, to_player_id, false) do
     now = :os.system_time(:millisecond)
+
     %{
       :slack => slack,
       :channel => channel
     } = game_data
+
     Message.send_player_has_potato_message(slack, channel, to_player_id)
+
     game_data
     |> Map.put(:player_with_potato, to_player_id)
     |> Map.put(:last_pass_time, now)
@@ -132,12 +139,24 @@ defmodule HotPotato.Actions do
     cond do
       # from user doesn't actually have the potato
       from_player_id != player_with_potato ->
-        Message.send_warning(slack, channel, "<@#{from_player_id}>, you can't pass a potato you don't have!")
+        Message.send_warning(
+          slack,
+          channel,
+          "<@#{from_player_id}>, you can't pass a potato you don't have!"
+        )
+
         game_data
+
       # trying to pass to a user that isn't playing
       !MapSet.member?(players, to_player_id) ->
-        Message.send_warning(slack, channel, "<@#{from_player_id}>, <@#{to_player_id}> is not playing!")
+        Message.send_warning(
+          slack,
+          channel,
+          "<@#{from_player_id}>, <@#{to_player_id}> is not playing!"
+        )
+
         game_data
+
       # valid pass attempt
       true ->
         do_pass(game_data, from_player_id, to_player_id, do_penalty)
@@ -149,19 +168,28 @@ defmodule HotPotato.Actions do
   the live players set
   """
   def kill_player(game_data) do
-    %{:slack => slack, :channel => channel, :player_with_potato => player_id, :live_players => live_players} = game_data
+    %{
+      :slack => slack,
+      :channel => channel,
+      :player_with_potato => player_id,
+      :live_players => live_players
+    } = game_data
+
     Image.send_boom(channel)
     Message.send_player_out_message(slack, channel, player_id)
-    new_live_players = live_players
+
+    new_live_players =
+      live_players
       |> MapSet.delete(player_id)
+
     new_player_with_potato = choose_player(new_live_players)
 
     game_data
-      |> Map.put(:player_with_potato, new_player_with_potato)
-      |> Map.put(:live_players, new_live_players)
-      # this is slightly tricky, because this may not be the final round, but by the end of the
-      # game the :second_place value in the game_data map will have the right user_id
-      |> Map.put(:second_place, player_id)
+    |> Map.put(:player_with_potato, new_player_with_potato)
+    |> Map.put(:live_players, new_live_players)
+    # this is slightly tricky, because this may not be the final round, but by the end of the
+    # game the :second_place value in the game_data map will have the right user_id
+    |> Map.put(:second_place, player_id)
   end
 
   @doc """
@@ -172,7 +200,9 @@ defmodule HotPotato.Actions do
     # would not be the winner, but in this case there is only one player and they
     # get handed the potato by the `kill_player` action when the second to last player
     # dies
-    %{:slack => slack, :channel => channel, :player_with_potato => player_id, :users => users} = game_data
+    %{:slack => slack, :channel => channel, :player_with_potato => player_id, :users => users} =
+      game_data
+
     Message.announce_winner(slack, channel, player_id)
     user_name = users[player_id][:name]
     Image.send_award(channel, Application.get_env(:hot_potato, :winner_award_image), user_name)
@@ -183,10 +213,18 @@ defmodule HotPotato.Actions do
   Send a message announcing the second placer player
   """
   def announce_second_place(game_data) do
-    %{:slack => slack, :channel => channel, :second_place => player_id, :users => users} = game_data
+    %{:slack => slack, :channel => channel, :second_place => player_id, :users => users} =
+      game_data
+
     Message.announce_second_place(slack, channel, player_id)
     user_name = users[player_id][:name]
-    Image.send_award(channel, Application.get_env(:hot_potato, :second_place_award_image), user_name)
+
+    Image.send_award(
+      channel,
+      Application.get_env(:hot_potato, :second_place_award_image),
+      user_name
+    )
+
     game_data
   end
 end

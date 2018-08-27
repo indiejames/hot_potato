@@ -1,5 +1,4 @@
 defmodule HotPotato.Matcher do
-
   defmacro __using__(_opts) do
     quote do
       import HotPotato.Matcher
@@ -23,6 +22,7 @@ defmodule HotPotato.Matcher do
       def do_match(slack, message) do
         %{channel: channel, user: user, text: text} = message
         match = Enum.find(@matchers, fn [regex, _] -> Regex.match?(regex, text) end)
+
         if match do
           [regex, fun] = match
           [_ | args] = Regex.run(regex, text)

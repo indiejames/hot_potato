@@ -19,13 +19,13 @@ defmodule HotPotato do
   end
 
   # Messages to listen for and actions to take
-  match ~r/go potato/, :start_game
+  match(~r/go potato/, :start_game)
 
-  match ~r/^join/, :join
+  match(~r/^join/, :join)
 
-  match ~r/pass to <@(.+?)>/, :pass
+  match(~r/pass to <@(.+?)>/, :pass)
 
-  match ~r/give to <@(.+?)>/, :pass
+  match(~r/give to <@(.+?)>/, :pass)
 
   @doc """
   Start a new game. Called from the message matcher.
@@ -64,7 +64,7 @@ defmodule HotPotato do
   Returns {:ok, interaal_game_state}
   """
   def handle_connect(slack, state) do
-    IO.puts "Connected as #{slack.me.name}"
+    IO.puts("Connected as #{slack.me.name}")
     {:ok, state}
   end
 
@@ -92,7 +92,7 @@ defmodule HotPotato do
   Returns {:ok, original_state}
   """
   def handle_info({:message, text, channel}, slack, state) do
-    IO.puts "Sending your message, captain!"
+    IO.puts("Sending your message, captain!")
 
     send_message(text, channel, slack)
 

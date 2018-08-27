@@ -9,7 +9,11 @@ defmodule HotPotato.Message do
   Send a notifcation to the channel that the game is going to start soon
   """
   def send_start_notice(slack, channel, wait_sec) do
-    send_message("Hot Potato starting in #{wait_sec / 1000} seconds - message 'join' to play", channel, slack)
+    send_message(
+      "Hot Potato starting in #{wait_sec / 1000} seconds - message 'join' to play",
+      channel,
+      slack
+    )
   end
 
   @doc """
@@ -41,10 +45,12 @@ defmodule HotPotato.Message do
   Send a notication to the channel that a game has started and show a list of the players
   """
   def send_round_started_message(slack, channel, player_ids, round) do
-    player_list = player_ids
-    |> Enum.to_list()
-    |> Enum.map(&("<@#{&1}>"))
-    |> Enum.join(",")
+    player_list =
+      player_ids
+      |> Enum.to_list()
+      |> Enum.map(&"<@#{&1}>")
+      |> Enum.join(",")
+
     send_message("Starting round #{round}!", channel, slack)
     send_message("The players are #{player_list}", channel, slack)
   end
@@ -83,5 +89,4 @@ defmodule HotPotato.Message do
   def announce_second_place(slack, channel, player_id) do
     send_message("And in second place - <@#{player_id}>!", channel, slack)
   end
-
 end

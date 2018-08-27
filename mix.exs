@@ -2,12 +2,14 @@ defmodule HotPotato.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :hot_potato,
-     version: "0.1.0",
-     elixir: "~> 1.4",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [
+      app: :hot_potato,
+      version: "0.1.0",
+      elixir: "~> 1.4",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps: deps()
+    ]
   end
 
   # Configuration for the OTP application
@@ -15,8 +17,7 @@ defmodule HotPotato.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger],
-     mod: {HotPotato.Application, []}]
+    [extra_applications: [:logger], mod: {HotPotato.Application, []}]
   end
 
   # Dependencies can be Hex packages:
@@ -29,8 +30,6 @@ defmodule HotPotato.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:slack, "~> 0.14.0"},
-     {:fsm, "~> 0.3.1"},
-     {:mogrify_draw, "~> 0.1.0"}]
+    [{:slack, "~> 0.14.0"}, {:fsm, "~> 0.3.1"}, {:mogrify_draw, "~> 0.1.0"}]
   end
 end
