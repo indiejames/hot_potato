@@ -26,9 +26,7 @@ defmodule HotPotato.Actions do
   def do_countdown(game_data) do
     %{:slack => slack, :channel => channel, :round => round} = game_data
     Message.send_round_countdown_message(slack, channel, round + 1)
-    file = Application.get_env(:hot_potato, :countdown_image)
-    file_name = Path.basename(file)
-    Image.send_image(channel, file, file_name)
+    Image.send_countdown(channel)
     game_data
   end
 

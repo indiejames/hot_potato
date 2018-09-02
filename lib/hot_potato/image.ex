@@ -1,19 +1,21 @@
 defmodule Image do
+  @messenger Application.get_env(:hot_potato, :messenger)
+
   @moduledoc """
   Functions to send images to the Slack channel
   """
 
-  # Send the given `file` to the channel using `fileName`
-  def send_image(channel, file, file_name) do
-    token = System.get_env("TOKEN")
-    Slack.Web.Files.upload(file, file_name, %{token: token, as_user: true, channels: [channel]})
+  def send_countdown(channel) do
+    file = Application.get_env(:hot_potato, :countdown_image)
+    file_name = Path.basename(file)
+    @messenger.send_image(channel, file, file_name)
   end
 
   @doc """
   Send an image of an exploding potato to the channel
   """
   def send_boom(channel) do
-    send_image(channel, Application.get_env(:hot_potato, :boom_image), "boom.jpg")
+    @messenger.send_image(channel, Application.get_env(:hot_potato, :boom_image), "boom.jpg")
   end
 
   def create_award_annotated_image(file, text) do
@@ -32,7 +34,7 @@ defmodule Image do
   end
 
   @doc """
-  Send an annotated image of an ward to channel. The `file` argument specifies the image to use.
+  Send an annotated image of an award to channel. The `file` argument specifies the image to use.
   The `text argument is used for hte annotation. Long annotations will probably not fit on the
   image.
   """
@@ -40,7 +42,7 @@ defmodule Image do
     path = create_award_annotated_image(file, text)
 
     try do
-      send_image(channel, path, Path.basename(file))
+      @messenger.send_image(channel, path, Path.basename(file))
     after
       File.rm(path)
     end

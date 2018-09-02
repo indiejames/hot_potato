@@ -21,14 +21,6 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
-# It is also possible to import configuration files, relative to this
-# directory. For example, you can emulate configuration per environment
-# by uncommenting the line below and defining dev.exs, test.exs and such.
-# Configuration from the imported file will override the ones defined
-# here (which is why it is important to import them last).
-#
-import_config "#{Mix.env}.exs"
-
 # time players have to join a new game (msec)
 config :hot_potato, game_start_delay: 10_000
 # minimum time a potato will last
@@ -41,3 +33,12 @@ config :hot_potato, countdown_image: "images/countdown.gif"
 config :hot_potato, winner_award_image: "images/blue_ribbon.png"
 # image to use to render second place award
 config :hot_potato, second_place_award_image: "images/red_ribbon.png"
+
+# It is also possible to import configuration files, relative to this
+# directory. For example, you can emulate configuration per environment
+# by uncommenting the line below and defining dev.exs, test.exs and such.
+# Configuration from the imported file will override the ones defined
+# here (which is why it is important to import them last).
+#
+import_config "#{Mix.env}.exs"
+
