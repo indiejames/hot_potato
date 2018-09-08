@@ -1,5 +1,6 @@
 defmodule HotPotato.GameStateMachine do
   alias HotPotato.Actions
+  @users_mod Application.get_env(:hot_potato, :users_mod)
 
   @initial_data %{
     # all players in the current game (alive or dead)
@@ -28,8 +29,9 @@ defmodule HotPotato.GameStateMachine do
         |> Integer.parse()
 
       # we need the map of user ids to user names so we can send awards later
+      # TODO parameterize this call to Slack.Web.Users.list
       users =
-        Slack.Web.Users.list(%{token: System.get_env("TOKEN")})
+        @users_mod.list(%{token: System.get_env("TOKEN")})
         |> Map.get("members")
         |> Enum.reduce(%{}, fn member, acc ->
           Map.put(acc, member["id"], %{:name => member["real_name"], :is_bot => member["is_bot"]})
@@ -125,6 +127,11 @@ defmodule HotPotato.GameStateMachine do
       Actions.announce_second_place(data)
       next_state(:stopped, data)
     end
+  end
+
+  # reset event will reset the state machine to it's initial state - used for testing
+  defevent reset do
+    next_state(:stopped, @initial_data)
   end
 
   # prevent exceptions for unknown or improper events

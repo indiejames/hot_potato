@@ -9,12 +9,13 @@ defmodule HotPotato.Mixfile do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      elixirc_paths: elixirc_paths(Mix.env)
+      elixirc_paths: elixirc_paths(Mix.env()),
+      preferred_cli_env: [espec: :test]
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "test/support"]
-  defp elixirc_paths(_),     do: ["lib"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Configuration for the OTP application
   #
@@ -34,6 +35,10 @@ defmodule HotPotato.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:slack, "~> 0.14.0"}, {:fsm, "~> 0.3.1"}, {:mogrify_draw, "~> 0.1.0"}]
+    [
+      {:slack, "~> 0.14.0"},
+      {:fsm, "~> 0.3.1"},
+      {:mogrify_draw, "~> 0.1.0"}
+    ]
   end
 end

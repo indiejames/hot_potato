@@ -27,7 +27,11 @@ defmodule HotPotato.Message do
   Send a notification to the channel that a bot player tried to pass the potato to quickly
   """
   def send_bot_time_penalty(slack, channel, player_id) do
-    @messenger.send_text_message("Naughty <@#{player_id}>, don't be so hasty! You get a penalty.", channel, slack)
+    @messenger.send_text_message(
+      "Naughty <@#{player_id}>, don't be so hasty! You get a penalty.",
+      channel,
+      slack
+    )
   end
 
   @doc """

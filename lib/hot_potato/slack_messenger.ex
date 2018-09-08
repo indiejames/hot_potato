@@ -10,5 +10,4 @@ defmodule HotPotato.SlackMessenger do
     token = System.get_env("TOKEN")
     Slack.Web.Files.upload(file, file_name, %{token: token, as_user: true, channels: [channel]})
   end
-
 end
