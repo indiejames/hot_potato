@@ -124,13 +124,7 @@ defmodule GameStateMachineTest do
     end
 
     test "Game warns user that tries to pass the potato when they don't have it", state do
-      gsm =
-        GameStateMachine.new()
-        |> GameStateMachine.game_started(nil, "#hp")
-        |> GameStateMachine.join_request("user1")
-        |> GameStateMachine.join_request("user2")
-        |> GameStateMachine.countdown_started()
-        |> GameStateMachine.start_round()
+      gsm = state.gsm |> GameStateMachine.start_round()
 
       player = gsm.data.player_with_potato
       non_potato_player = gsm.data.live_players
