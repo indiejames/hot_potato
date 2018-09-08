@@ -6,16 +6,10 @@ defmodule GameStateMachineTest do
 
   @moduledoc """
   Test module for the GameStateMachine functions. These tests rely on the MockSlackWebUsers
-  module that defines users 'user1', 'user2', and 'user3'
+  module that defines users 'user1', 'user2', and 'bot_user'
   """
 
   doctest HotPotato.GameStateMachine
-
-  # set up state once before tests run
-  # setup_all do
-  #   {:ok, gsm_agent} = Agent.start_link(fn -> GameStateMachine.new() end)
-  #   {:ok, gsm_agent: gsm_agent}
-  # end
 
   describe "Pre start game checks" do
 
@@ -72,7 +66,7 @@ defmodule GameStateMachineTest do
     test "Game will not let users join after the countdown starts", state do
       gsm = state.gsm
       |> GameStateMachine.countdown_started()
-      |> GameStateMachine.join_request("user3")
+      |> GameStateMachine.join_request("bot_user")
       assert gsm.data.players == MapSet.new([])
     end
   end
@@ -141,9 +135,9 @@ defmodule GameStateMachineTest do
 
       player = gsm.data.player_with_potato
 
-      entry = capture_log(fn -> GameStateMachine.pass(gsm, player, "user3") end)
+      entry = capture_log(fn -> GameStateMachine.pass(gsm, player, "bot_user") end)
       [{_time_stamp, _level, message}] = HotPotato.Test.Util.parse_message_log_entry(entry)
-      assert message == "<@#{player}>, <@user3> is not playing! :warning:"
+      assert message == "<@#{player}>, <@bot_user> is not playing! :warning:"
     end
 
     test "Game warns user when they try to pass the potato to a non-user", state do
@@ -157,11 +151,30 @@ defmodule GameStateMachineTest do
     end
 
     test "User with potato is removed from players when potato explodes", state do
+      gsm = state.gsm |> GameStateMachine.start_round()
 
+      player = gsm.data.player_with_potato
+      gsm = gsm |> GameStateMachine.explode()
+
+      assert !MapSet.member?(gsm.data.live_players, player)
+    end
+
+    test "Game sends message when a player is out", state do
+      gsm = state.gsm |> GameStateMachine.start_round()
+
+      player = gsm.data.player_with_potato
+      entry = capture_log(fn -> GameStateMachine.explode(gsm) end)
+      [{_time_stamp, _level, message}] = HotPotato.Test.Util.parse_message_log_entry(entry)
+      assert message == "<@#{player}> is out!"
     end
 
     test "Award is given to winner", state do
+      gsm = state.gsm |> GameStateMachine.start_round() |> GameStateMachine.explode()
 
+      player = gsm.data.player_with_potato
+      entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
+      [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)
+      assert file_name == Path.basename(Application.get_env(:hot_potato, :winner_award_image))
     end
   end
 end

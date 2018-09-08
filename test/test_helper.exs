@@ -1,2 +1,2 @@
 ExUnit.start()
-ExUnit.configure(seed: 0)
+# ExUnit.configure(seed: 0)

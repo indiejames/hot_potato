@@ -10,7 +10,7 @@ defmodule HotPotato.MockMessenger do
     Logger.info("Sending message: '#{message}'")
   end
 
-  def send_image(_channel, file, _file_name) do
-    Logger.info("Sending image #{file}")
+  def send_image(_channel, _file, file_name) do
+    Logger.info("Sending image #{file_name}")
   end
 end
