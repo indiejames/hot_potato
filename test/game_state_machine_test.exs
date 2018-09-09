@@ -11,7 +11,7 @@ defmodule GameStateMachineTest do
 
   doctest HotPotato.GameStateMachine
 
-  describe "Pre start game checks" do
+  describe "Pre start game checks -" do
 
     setup do
       {:ok, gsm: GameStateMachine.new()}
@@ -26,7 +26,7 @@ defmodule GameStateMachineTest do
     end
   end
 
-  describe "Pre start round checks" do
+  describe "Pre start round checks -" do
 
     setup do
       {:ok, gsm: GameStateMachine.new() |> GameStateMachine.game_started(nil, "#hp")}
@@ -71,7 +71,7 @@ defmodule GameStateMachineTest do
     end
   end
 
-  describe "Post start round checks" do
+  describe "Post start round checks -" do
     setup do
       gsm = GameStateMachine.new()
       |> GameStateMachine.game_started(nil, "#hp")
@@ -175,6 +175,16 @@ defmodule GameStateMachineTest do
       entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
       [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)
       assert file_name == Path.basename(Application.get_env(:hot_potato, :winner_award_image))
+    end
+
+    test "Second place trophy is given to runner up", state do
+      gsm = state.gsm |> GameStateMachine.start_round()
+
+      second_place = gsm.data.player_with_potato
+      gsm = gsm |> GameStateMachine.explode() |> GameStateMachine.tick()
+      entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
+      [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)
+      assert file_name == Path.basename(Application.get_env(:hot_potato, :second_place_award_image))
     end
   end
 end
