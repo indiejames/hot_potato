@@ -5,6 +5,16 @@ defmodule HotPotato do
 
   use Slack
   use HotPotato.Matcher
+  use GenServer
+
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, :ok, opts)
+  end
+
+  def init(:ok) do
+    connect()
+    {:ok, %{}}
+  end
 
   @doc """
   Connect to the Slack channel
@@ -15,7 +25,7 @@ defmodule HotPotato do
     token = System.get_env("TOKEN")
     IO.puts("TOKEN: #{token}")
     {:ok, agent} = HotPotato.StateManager.start_link([])
-    Slack.Bot.start_link(__MODULE__, agent, token)
+    Slack.Bot.start_link(__MODULE__, agent, token, %{:name => Slack.Bot})
   end
 
   # Messages to listen for and actions to take
@@ -45,8 +55,6 @@ defmodule HotPotato do
   def join(slack, channel, from_player) do
     IO.puts("Player #{from_player} wants to join")
     HotPotato.StateManager.add_player(slack, channel, from_player)
-    # TODO remove this for real games - needed now for testing by myself
-    # HotPotato.StateManager.add_player(slack, channel, slack.me.id)
   end
 
   @doc """
