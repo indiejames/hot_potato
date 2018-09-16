@@ -6,6 +6,13 @@ defmodule HotPotato.Message do
   """
 
   @doc """
+  Send a setup or punchline to a joke
+  """
+  def send_partial_joke(slack, channel, text) do
+    @messenger.send_text_message(text, channel, slack)
+  end
+
+  @doc """
   Send a notifcation to the channel that the game is going to start soon
   """
   def send_start_notice(slack, channel, wait_sec) do

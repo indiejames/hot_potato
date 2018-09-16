@@ -1,5 +1,6 @@
 defmodule HotPotato.Actions do
   alias HotPotato.Message
+  import HotPotato.Util
 
   @moduledoc """
   Functions that take a game data map, perform an action, then return an updated game data map
@@ -8,6 +9,21 @@ defmodule HotPotato.Actions do
   # choose a player at random
   defp choose_player(players) do
     Enum.random(players)
+  end
+
+  @doc """
+  Send joke/riddle in two parts (Question/Answer) to the channel
+  """
+  def tell_joke(game_data) do
+    %{:jokes => jokes, :slack => slack, :channel => channel} = game_data
+    joke = Enum.random(jokes)
+    # send the setup
+    Message.send_partial_joke(slack, channel, ~s(Q: #{joke["Q"]}))
+    # send the punchline after a delay
+    run_after_delay(3_000, fn ->
+      Message.send_partial_joke(slack, channel, ~s(A: #{joke["A"]}))
+    end)
+    Map.put(game_data, :jokes, List.delete(jokes, joke))
   end
 
   @doc """

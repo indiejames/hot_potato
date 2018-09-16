@@ -1,7 +1,9 @@
 defmodule HotPotato.StateManager do
   use Agent
   alias HotPotato.GameStateMachine
+  alias HotPotato.Actions
   alias HotPotato.Message
+  import HotPotato.Util
 
   @moduledoc """
   Functions to update game state when Slack messages or timer events are received
@@ -10,23 +12,18 @@ defmodule HotPotato.StateManager do
   # default fuse time (per player) in ms
   @default_fuse_time "5000"
 
+  # length of countdown animation in ms
+  @countdown_delay 5_500
+
   # delay between award notifications in ms
   @delay_between_awards 3000
+
+  # mean delay between telling jokes in ms
+  @mean_joke_delay 10_000
 
   @doc "Starts the agaent using the module name as its name with an empty map as its state"
   def start_link(_) do
     Agent.start_link(fn -> GameStateMachine.new() end, name: __MODULE__)
-  end
-
-  # run a function after the given delay (in ms)
-  defp run_after_delay(delay, fun) do
-    spawn(fn ->
-      receive do
-        {:not_gonna_happen, msg} -> msg
-      after
-        delay -> fun.()
-      end
-    end)
   end
 
   @doc """
@@ -82,7 +79,7 @@ defmodule HotPotato.StateManager do
   def do_countdown() do
     Agent.update(__MODULE__, fn gsm ->
       new_gsm = GameStateMachine.countdown_started(gsm)
-      run_after_delay(5_500, &begin_round/0)
+      run_after_delay(@countdown_delay, &begin_round/0)
       new_gsm
     end)
   end
@@ -95,8 +92,29 @@ defmodule HotPotato.StateManager do
 
     Agent.update(__MODULE__, fn gsm ->
       new_gsm = GameStateMachine.start_round(gsm)
+      if System.get_env("JOKES") do
+        delay = :rand.normal(0, 5) + @mean_joke_delay |> Kernel.trunc()
+        run_after_delay(delay, &tell_joke/0)
+      end
       start_potato_timer(new_gsm.data)
       new_gsm
+    end)
+  end
+
+  @doc """
+  Tell a joke if the game is in the :playing state
+  """
+  def tell_joke do
+    Agent.update(__MODULE__, fn gsm ->
+      if gsm.state == :playing do
+        IO.puts("telling joke...")
+        new_game_data = Actions.tell_joke(gsm.data)
+        delay = :rand.normal(0, 5) + @mean_joke_delay |> Kernel.trunc()
+        run_after_delay(delay, &tell_joke/0)
+        Map.put(gsm, :data, new_game_data)
+      else
+        gsm
+      end
     end)
   end
 

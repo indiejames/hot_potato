@@ -16,6 +16,14 @@ defmodule HotPotato.GameStateMachine do
   use Fsm, initial_state: :stopped, initial_data: @initial_data
 
   #
+  # Read and parse a JSON file
+  #
+  defp get_json(filename) do
+    with {:ok, body} <- File.read(filename),
+         {:ok, json} <- Poison.decode(body), do: {:ok, json}
+  end
+
+  #
   # These are all the states and the various events pertinent to each state
   #
 
@@ -27,6 +35,9 @@ defmodule HotPotato.GameStateMachine do
       {bot_penalty, ""} =
         (System.get_env("BOT_PENALTY") || "0")
         |> Integer.parse()
+
+      # read in the potato jokes
+      {:ok, jokes} = get_json("jokes.json")
 
       # we need the map of user ids to user names so we can send awards later
       # TODO parameterize this call to Slack.Web.Users.list
@@ -43,6 +54,7 @@ defmodule HotPotato.GameStateMachine do
         |> Map.put(:channel, channel)
         |> Map.put(:users, users)
         |> Map.put(:bot_penalty, bot_penalty)
+        |> Map.put(:jokes, jokes)
 
       new_data = Actions.start_game(data)
 
