@@ -19,16 +19,21 @@ defmodule Image do
   end
 
   def create_award_annotated_image(file, text) do
-    image_width = 166
+    image_width = 128
     point_size = 20
     pixel_size = 11
-    offset = image_width / 2 - String.length(text) / 2 * pixel_size
-    IO.puts(offset)
+    image_height = image_width + 2 * pixel_size
+    label_width = String.length(text) * pixel_size
+    image_width = if label_width > image_width, do: label_width, else: image_width
+    x_offset = 0
+    IO.puts("OFFSET: #{x_offset}")
 
     %Mogrify.Image{path: file}
+    |> Mogrify.gravity("North")
+    |> Mogrify.extent(~s(#{image_width}x#{image_height}))
     |> Mogrify.custom("font", "Courier")
     |> Mogrify.custom("pointsize", "#{point_size}")
-    |> Mogrify.Draw.text(offset, 90, text)
+    |> Mogrify.Draw.text(x_offset, 120, text)
     |> Mogrify.save()
     |> Map.get(:path)
   end
