@@ -138,8 +138,8 @@ defmodule HotPotato.GameStateMachine do
   defstate award_ceremony_2nd_place do
     # a timer expired indicating it's time to show something
     defevent tick(), data: data do
-      Actions.announce_second_place(data)
-      next_state(:award_ceremony_3rd_place, data)
+      new_data = Actions.announce_second_place(data)
+      next_state(:award_ceremony_3rd_place, new_data)
     end
   end
 
