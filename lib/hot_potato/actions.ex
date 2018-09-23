@@ -186,7 +186,8 @@ defmodule HotPotato.Actions do
       :slack => slack,
       :channel => channel,
       :player_with_potato => player_id,
-      :live_players => live_players
+      :live_players => live_players,
+      :dead_players => dead_players
     } = game_data
 
     Image.send_boom(channel)
@@ -201,9 +202,7 @@ defmodule HotPotato.Actions do
     game_data
     |> Map.put(:player_with_potato, new_player_with_potato)
     |> Map.put(:live_players, new_live_players)
-    # this is slightly tricky, because this may not be the final round, but by the end of the
-    # game the :second_place value in the game_data map will have the right user_id
-    |> Map.put(:second_place, player_id)
+    |> Map.put(:dead_players, [player_id | dead_players])
   end
 
   @doc """
@@ -223,22 +222,55 @@ defmodule HotPotato.Actions do
     game_data
   end
 
-  @doc """
-  Send a message announcing the second placer player
-  """
-  def announce_second_place(game_data) do
-    %{:slack => slack, :channel => channel, :second_place => player_id, :users => users} =
+  defp announce_nth_place(game_data, message_fn, img_atom) do
+    %{:slack => slack, :channel => channel, :dead_players => dead_players, :users => users} =
       game_data
 
-    Message.announce_second_place(slack, channel, player_id)
-    user_name = users[player_id][:name]
+    new_game_data = if Enum.count(dead_players) > 0 do
+      [player_id | other_dead_players] = dead_players
+      message_fn.(slack, channel, player_id)
+      user_name = users[player_id][:name]
 
-    Image.send_award(
-      channel,
-      Application.get_env(:hot_potato, :second_place_award_image),
-      user_name
-    )
+      Image.send_award(
+        channel,
+        Application.get_env(:hot_potato, img_atom),
+        user_name
+      )
 
-    game_data
+      # remove the player from the list of dead players so other awards won't pick them up
+      Map.put(game_data, :dead_players, other_dead_players)
+    else
+      game_data
+    end
+
+    new_game_data
+  end
+
+  @doc """
+  Send a message announcing the second place player
+  """
+  def announce_second_place(game_data) do
+    # %{:slack => slack, :channel => channel, :dead_players => dead_players, :users => users} =
+    #   game_data
+    # [player_id | other_dead_players] = dead_players
+    # Message.announce_second_place(slack, channel, player_id)
+    # user_name = users[player_id][:name]
+
+    # Image.send_award(
+    #   channel,
+    #   Application.get_env(:hot_potato, :second_place_award_image),
+    #   user_name
+    # )
+
+    # # remove the player from the list of dead players so other awards won't pick them up
+    # Map.put(game_data, :dead_players, other_dead_players)
+    announce_nth_place(game_data, &Message.announce_second_place/3, :second_place_award_image)
+  end
+
+  @doc """
+  Send a message announcing the third place player
+  """
+  def announce_third_place(game_data) do
+    announce_nth_place(game_data, &Message.announce_third_place/3, :third_place_award_image)
   end
 end

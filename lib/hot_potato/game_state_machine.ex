@@ -7,6 +7,8 @@ defmodule HotPotato.GameStateMachine do
     :players => MapSet.new(),
     # active players
     :live_players => MapSet.new(),
+    # inactive players
+    :dead_players => [],
     # lifespan of potato in milliseconds
     :potato_lifespan => 0,
     # start time in milliseconds since epoch
@@ -137,6 +139,15 @@ defmodule HotPotato.GameStateMachine do
     # a timer expired indicating it's time to show something
     defevent tick(), data: data do
       Actions.announce_second_place(data)
+      next_state(:award_ceremony_3rd_place, data)
+    end
+  end
+
+  # AWARD CEREMONY 3RD PLACE
+  defstate award_ceremony_3rd_place do
+    # a timer expired indicating it's time to show something
+    defevent tick(), data: data do
+      Actions.announce_third_place(data)
       next_state(:stopped, data)
     end
   end

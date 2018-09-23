@@ -33,6 +33,8 @@ config :hot_potato, countdown_image: "images/countdown.gif"
 config :hot_potato, winner_award_image: "images/first_prize.png"
 # image to use to render second place award
 config :hot_potato, second_place_award_image: "images/second_prize.png"
+# image to use to render third place award
+config :hot_potato, third_place_award_image: "images/third_prize.png"
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
