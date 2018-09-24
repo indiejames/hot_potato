@@ -39,7 +39,14 @@ defmodule HotPotato.GameStateMachine do
         |> Integer.parse()
 
       # read in the potato jokes
-      {:ok, jokes} = get_json("jokes.json")
+      joke_file = System.get_env("JOKES")
+      jokes =
+      if joke_file != "" do
+        {:ok, jokes} = get_json(joke_file)
+        jokes
+      else
+        []
+      end
 
       # we need the map of user ids to user names so we can send awards later
       # TODO parameterize this call to Slack.Web.Users.list
