@@ -13,7 +13,10 @@ defmodule HotPotato.StateManager do
   @default_fuse_time "5000"
 
   # length of countdown animation in ms
-  @countdown_delay 5_500
+  @countdown_delay 5_700
+
+  # how long to wait between rounds
+  @delay_between_rounds 5_000
 
   # delay between award notifications in ms
   @delay_between_awards 3000
@@ -131,8 +134,8 @@ defmodule HotPotato.StateManager do
     Agent.update(__MODULE__, fn gsm ->
       new_gsm = GameStateMachine.explode(gsm)
 
-      if new_gsm.state === :countdown do
-        run_after_delay(5_500, &begin_round/0)
+      if new_gsm.state === :pause_before_countdown do
+        run_after_delay(@delay_between_rounds, &do_countdown/0)
       else
         # end of game
         run_after_delay(@delay_between_awards, &do_awards/0)

@@ -121,7 +121,7 @@ defmodule HotPotato.GameStateMachine do
         if Enum.count(live_players) == 1 do
           {:award_ceremony, new_data}
         else
-          {:countdown, Actions.do_countdown(new_data)}
+          {:pause_before_countdown, new_data}
         end
 
       next_state(next_state_atom, new_data)
@@ -129,6 +129,14 @@ defmodule HotPotato.GameStateMachine do
 
     defevent stop do
       next_state(:stopped, %{})
+    end
+  end
+
+  # PAUSE BEFORE NEW COUNTDOWN
+  defstate pause_before_countdown do
+    # countdown started event
+    defevent countdown_started(), data: data do
+      next_state(:countdown, Actions.do_countdown(data))
     end
   end
 

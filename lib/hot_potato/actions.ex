@@ -16,14 +16,20 @@ defmodule HotPotato.Actions do
   """
   def tell_joke(game_data) do
     %{:jokes => jokes, :slack => slack, :channel => channel} = game_data
-    joke = Enum.random(jokes)
-    # send the setup
-    Message.send_partial_joke(slack, channel, ~s(Q: #{joke["Q"]}))
-    # send the punchline after a delay
-    run_after_delay(3_000, fn ->
-      Message.send_partial_joke(slack, channel, ~s(A: #{joke["A"]}))
-    end)
-    Map.put(game_data, :jokes, List.delete(jokes, joke))
+    if jokes && Enum.count(jokes) > 0 do
+      joke = Enum.random(jokes)
+      # send the setup
+      Message.send_partial_joke(slack, channel, ~s(Q: #{joke["Q"]}))
+      # send the punchline after a delay
+      run_after_delay(3_000, fn ->
+        Message.send_partial_joke(slack, channel, ~s(A: #{joke["A"]}))
+      end)
+      Map.put(game_data, :jokes, List.delete(jokes, joke))
+    else
+      game_data
+    end
+
+
   end
 
   @doc """

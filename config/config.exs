@@ -26,9 +26,9 @@ config :hot_potato, game_start_delay: 10_000
 # minimum time a potato will last
 config :hot_potato, min_potato_fuse_time: 5_000
 # image sent to the channel when the potato explodes
-config :hot_potato, boom_image: "images/potato_explosion.png"
+config :hot_potato, boom_image: "images/kablooey.png"
 # coundown image
-config :hot_potato, countdown_image: "images/countdown.gif"
+config :hot_potato, countdown_image: "images/countdown_potato.gif"
 # image to use to render the winner award
 config :hot_potato, winner_award_image: "images/first_prize.png"
 # image to use to render second place award
