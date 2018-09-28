@@ -38,7 +38,8 @@ defmodule HotPotato.Mixfile do
     [
       {:slack, "~> 0.14.0"},
       {:fsm, "~> 0.3.1"},
-      {:mogrify_draw, "~> 0.1.0"}
+      {:mogrify_draw, "~> 0.1.0"},
+      {:stream_data, "~> 0.1", only: :test}
     ]
   end
 end
