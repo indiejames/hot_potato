@@ -171,7 +171,6 @@ defmodule GameStateMachineTest do
     test "Award is given to winner", state do
       gsm = state.gsm |> GameStateMachine.start_round() |> GameStateMachine.explode()
 
-      player = gsm.data.player_with_potato
       entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
       [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)
       assert file_name == Path.basename(Application.get_env(:hot_potato, :winner_award_image))
@@ -180,7 +179,6 @@ defmodule GameStateMachineTest do
     test "Second place trophy is given to runner up", state do
       gsm = state.gsm |> GameStateMachine.start_round()
 
-      second_place = gsm.data.player_with_potato
       gsm = gsm |> GameStateMachine.explode() |> GameStateMachine.tick()
       entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
       [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)

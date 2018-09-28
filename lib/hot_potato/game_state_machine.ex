@@ -41,7 +41,7 @@ defmodule HotPotato.GameStateMachine do
       # read in the potato jokes
       joke_file = System.get_env("JOKES")
       jokes =
-      if joke_file != "" do
+      if joke_file && joke_file != "" do
         {:ok, jokes} = get_json(joke_file)
         jokes
       else
