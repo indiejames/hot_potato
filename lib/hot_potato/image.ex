@@ -26,7 +26,6 @@ defmodule Image do
     label_width = String.length(text) * pixel_size
     image_width = if label_width > image_width, do: label_width, else: image_width
     x_offset = 0
-    IO.puts("OFFSET: #{x_offset}")
 
     %Mogrify.Image{path: file}
     |> Mogrify.gravity("North")
@@ -45,7 +44,7 @@ defmodule Image do
   """
   def send_award(channel, file, text) do
     path = create_award_annotated_image(file, text)
-
+    IO.puts(path)
     try do
       @messenger.send_image(channel, path, Path.basename(file))
     after
