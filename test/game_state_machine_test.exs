@@ -6,7 +6,7 @@ defmodule GameStateMachineTest do
 
   @moduledoc """
   Test module for the GameStateMachine functions. These tests rely on the MockSlackWebUsers
-  module that defines users 'user1', 'user2', and 'bot_user'
+  module that defines users 'user1', 'user2', 'user3', and 'bot_user'
   """
 
   doctest HotPotato.GameStateMachine
@@ -77,6 +77,7 @@ defmodule GameStateMachineTest do
       |> GameStateMachine.game_started(nil, "#hp")
       |> GameStateMachine.join_request("user1")
       |> GameStateMachine.join_request("user2")
+      |> GameStateMachine.join_request("user3")
       |> GameStateMachine.countdown_started()
       {:ok, gsm: gsm}
     end
@@ -169,7 +170,13 @@ defmodule GameStateMachineTest do
     end
 
     test "Award is given to winner", state do
-      gsm = state.gsm |> GameStateMachine.start_round() |> GameStateMachine.explode()
+      gsm = state.gsm
+      |> GameStateMachine.start_round()
+      |> GameStateMachine.explode()
+      |> GameStateMachine.tick()
+      |> GameStateMachine.countdown_started()
+      |> GameStateMachine.start_round()
+      |> GameStateMachine.explode()
 
       entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
       [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)
@@ -177,12 +184,34 @@ defmodule GameStateMachineTest do
     end
 
     test "Second place trophy is given to runner up", state do
-      gsm = state.gsm |> GameStateMachine.start_round()
+      gsm = state.gsm
+      |> GameStateMachine.start_round()
+      |> GameStateMachine.explode()
+      |> GameStateMachine.tick()
+      |> GameStateMachine.countdown_started()
+      |> GameStateMachine.start_round()
+      |> GameStateMachine.explode()
+      |> GameStateMachine.tick()
 
-      gsm = gsm |> GameStateMachine.explode() |> GameStateMachine.tick()
       entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
       [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)
       assert file_name == Path.basename(Application.get_env(:hot_potato, :second_place_award_image))
+    end
+
+    test "Third place trophy is given to runner up", state do
+      gsm = state.gsm
+      |> GameStateMachine.start_round()
+      |> GameStateMachine.explode()
+      |> GameStateMachine.tick()
+      |> GameStateMachine.countdown_started()
+      |> GameStateMachine.start_round()
+      |> GameStateMachine.explode()
+      |> GameStateMachine.tick()
+      |> GameStateMachine.tick()
+
+      entry = capture_log(fn -> GameStateMachine.tick(gsm) end)
+      [{_time_stamp, _level, file_name}] = HotPotato.Test.Util.parse_image_log_entry(entry)
+      assert file_name == Path.basename(Application.get_env(:hot_potato, :third_place_award_image))
     end
   end
 end
