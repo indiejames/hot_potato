@@ -17,6 +17,11 @@ defmodule HotPotato.MockSlackWebUser do
           "is_bot" => false
         },
         %{
+          "id" => "user3",
+          "real_name" => "User3",
+          "is_bot" => false
+        },
+        %{
           "id" => "bot_user",
           "real_name" => "BotUser",
           "is_bot" => true
